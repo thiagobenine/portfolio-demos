@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Landing page demos</title>
+<meta name="description" content="Three landing pages designed and built as portfolio demos. All brands are fictional.">
+<meta property="og:title" content="Landing page demos">
+<meta property="og:image" content="img/rest-days.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f1f2f4;--muted:#aab0bb;--ground:#121418;--rule:#2b2f37;--focus:#8fb2ff}
+*{box-sizing:border-box;margin:0}
+html{background:var(--ground);color:var(--ink);font-family:Archivo,system-ui,sans-serif;font-stretch:100%;-webkit-font-smoothing:antialiased}
+::selection{background:var(--ink);color:var(--ground)}
+body{max-width:1240px;margin:0 auto;padding:72px 32px 56px}
+header{max-width:62ch;margin-bottom:64px}
+h1{font-size:clamp(2.4rem,5.4vw,4.4rem);line-height:1.02;font-weight:800;font-stretch:118%;letter-spacing:-.03em;text-wrap:balance}
+header p{margin-top:20px;font-size:1.125rem;line-height:1.6;color:var(--muted)}
+ol{list-style:none;padding:0;display:grid;gap:72px}
+li{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:40px;align-items:center;padding-top:40px;border-top:1px solid var(--rule)}
+li img{width:100%;height:auto;display:block;border-radius:6px;box-shadow:0 24px 48px -28px rgba(0,0,0,.8)}
+h2{font-size:clamp(1.6rem,3vw,2.25rem);font-weight:800;font-stretch:112%;letter-spacing:-.02em;line-height:1.1}
+.what{margin-top:6px;font-weight:600;color:var(--muted)}
+li p.body{margin-top:16px;font-size:1.0625rem;line-height:1.6;color:var(--muted);max-width:52ch}
+a.open{display:inline-flex;align-items:center;gap:8px;margin-top:24px;padding:12px 18px;background:var(--ink);color:var(--ground);text-decoration:none;font-weight:700;border-radius:6px;transition:transform .15s ease-out,background .15s ease-out}
+a.open:hover{background:#fff;transform:translateY(-1px)}
+a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+a.shot{display:block;border-radius:6px}
+footer{margin-top:88px;padding-top:24px;border-top:1px solid var(--rule);color:var(--muted);font-size:.9375rem}
+@media (max-width:860px){body{padding:48px 20px 40px}li{grid-template-columns:1fr;gap:24px}ol{gap:56px}}
+@media (prefers-reduced-motion:reduce){a.open{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Three landing pages, each with its own visual world.</h1>
+  <p>Designed and coded by Thiago as portfolio demos: a subscription coffee roaster, a time-tracking tool for studios and a payments API for selling to Brazil. Every page is responsive and hand-built in HTML, CSS and JavaScript. The brands are fictional.</p>
+</header>
+<ol>
+  <li>
+    <a class="shot" href="rest-days/"><img src="img/rest-days.jpg" width="1600" height="1200" alt="Rest Days landing page on desktop and mobile: violet page with coffee bags and a week calendar"></a>
+    <div>
+      <h2>Rest Days</h2>
+      <p class="what">Coffee subscription</p>
+      <p class="body">A roaster's packing bench, stamped in one violet ink. Pick your brew method and delivery rhythm and the calendar re-stamps itself with roast days, rest days and the best days to brew.</p>
+      <a class="open" href="rest-days/">Open the page <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+  </li>
+  <li>
+    <a class="shot" href="hourcard/"><img src="img/hourcard.jpg" width="1600" height="1200" alt="Hourcard landing page on desktop and mobile: green cutting mat with a time card and a pink invoice"></a>
+    <div>
+      <h2>Hourcard</h2>
+      <p class="what">Time tracking for studios</p>
+      <p class="body">A studio desk on Friday: a time card, a client report and an invoice copy on a cutting mat. The week closes on screen, every entry ticks to billed and the invoice slides out with its totals.</p>
+      <a class="open" href="hourcard/">Open the page <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+  </li>
+  <li>
+    <a class="shot" href="cobogo/"><img src="img/cobogo.jpg" width="1600" height="1200" alt="Cobogó landing page on desktop and mobile: cobalt tile pattern with a PIX checkout and webhook log"></a>
+    <div>
+      <h2>Cobogó</h2>
+      <p class="what">Payments API for Brazil</p>
+      <p class="body">Built on the modernist tile walls of Brasília. A PIX charge is paid on screen, its QR squares flip to green, a signed webhook reaches the store and the order is marked paid. The QR code only decodes to a demo notice.</p>
+      <a class="open" href="cobogo/">Open the page <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+  </li>
+</ol>
+<footer>Portfolio demos. All brands, products and data on these pages are fictional.</footer>
+</body>
+</html>

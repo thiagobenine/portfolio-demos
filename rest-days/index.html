@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rest Days Coffee</title>
+<meta name="description" content="Single-origin coffee roasted to order every Monday, shipped the same afternoon, ready to brew by Saturday. Every 2 or 4 weeks, from $17 a bag. Portfolio demo, fictional brand.">
+<meta name="theme-color" content="#5429b3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --violet:#5429b3; --violet-press:#411892; --night:#1e1241; --lavender:#d6cdf8;
+  --paper:#f6f6fb; --paper-2:#ebe9f9; --rule:#d0cee4; --ink-text:#1b1630; --muted:#5a557a;
+  --dot-filter:#ddf93c; --dot-espresso:#ff7333; --hatch:#beb6e8;
+  --lav-line:rgb(214 205 248 / .34); --lav-faint:rgb(214 205 248 / .18);
+  --pad:16px;
+  --display:"Anybody", "Arial Narrow", sans-serif;
+  --text:"Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --lift:0 1px 1px rgb(0 0 0 / .06), 0 14px 30px -14px rgb(0 0 0 / .28);
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scrollbar-color:var(--violet) var(--paper-2);-webkit-text-size-adjust:100%;scroll-padding-top:84px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--paper-2)}
+::-webkit-scrollbar-thumb{background:var(--violet);border-radius:999px;border:3px solid var(--paper-2)}
+::selection{background:var(--dot-filter);color:var(--night)}
+body{margin:0;background:var(--paper);color:var(--ink-text);font:400 1.0625rem/1.55 var(--text);caret-color:var(--violet);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.num,.rail .n,.cal,.timeline span:last-child,.price b,.seg small,.acct-next strong{font-variant-numeric:tabular-nums}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration-thickness:.08em;text-underline-offset:.22em}
+button{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-family:var(--display);text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:3px solid var(--violet);outline-offset:3px;border-radius:4px}
+.on-violet :focus-visible,.on-violet:focus-visible{outline-color:var(--dot-filter)}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.wrap{width:100%;max-width:1320px;margin-inline:auto}
+.i{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.caps{font-family:var(--display);font-stretch:135%;font-weight:760;text-transform:uppercase;letter-spacing:.07em;font-size:.75rem;line-height:1.2}
+
+/* Buttons: round like a dot sticker */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.6em;min-height:52px;padding:.8em 1.45em;border-radius:999px;border:2px solid transparent;font:600 1.0625rem/1.1 var(--text);text-decoration:none;cursor:pointer;transition:transform .16s var(--ease-out),background-color .16s,box-shadow .16s,color .16s,border-color .16s}
+.btn .i{width:1.15em;height:1.15em}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn-dot{background:var(--dot-filter);color:var(--night)}
+.btn-dot:hover{background:#e8ff64}
+.btn-ghost{border-color:var(--lav-line);color:var(--paper)}
+.btn-ghost:hover{border-color:var(--lavender);background:rgb(214 205 248 / .08)}
+.btn-ink{background:var(--violet);color:var(--paper);box-shadow:0 1px 1px rgb(0 0 0 / .12),0 8px 18px -10px rgb(0 0 0 / .35)}
+.btn-ink:hover{background:var(--violet-press)}
+.btn-line{border-color:var(--violet);color:var(--violet)}
+.btn-line:hover{background:var(--violet);color:var(--paper)}
+.btn-sm{min-height:44px;padding:.55em 1.05em;font-size:.9375rem}
+
+/* Header */
+.top{padding:0 16px;position:sticky;top:0;z-index:40;background:var(--violet);color:var(--paper);border-bottom:1px solid var(--lav-faint)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.mark{display:inline-flex;text-decoration:none;color:var(--paper)}
+.mark span{font-family:var(--display);font-stretch:150%;font-weight:820;font-size:1rem;letter-spacing:.05em;line-height:1;text-transform:uppercase;padding:.42em .6em .36em;border:2px solid currentColor;border-radius:7px;box-shadow:inset 0 0 0 2px var(--violet),inset 0 0 0 3.25px currentColor;white-space:nowrap}
+.nav{display:none}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;text-decoration:none;font-weight:500;color:var(--lavender);transition:color .15s,background-color .15s}
+.nav a:hover{color:var(--paper);background:rgb(214 205 248 / .1)}
+.top-actions{display:flex;align-items:center;gap:8px}
+.cta-long{display:none}
+@media (min-width:560px){.cta-long{display:inline}.cta-short{display:none}}
+.menu-btn{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:999px;border:1.5px solid var(--lav-line);background:none;color:var(--paper);cursor:pointer}
+.menu-btn:hover{border-color:var(--lavender)}
+.menu-btn .x{display:none}
+.menu-btn[aria-expanded="true"] .x{display:block}
+.menu-btn[aria-expanded="true"] .bars{display:none}
+.drawer{display:none;border-top:1px solid var(--lav-faint);background:var(--violet);margin-inline:calc(-1 * var(--pad));padding-inline:var(--pad)}
+.drawer.open{display:block}
+.drawer ul{list-style:none;margin:0;padding:8px 0 16px}
+.drawer a{display:flex;align-items:center;justify-content:space-between;min-height:52px;text-decoration:none;font-family:var(--display);font-stretch:70%;font-weight:760;font-size:1.625rem;border-bottom:1px solid var(--lav-faint)}
+@media (min-width:920px){
+  .top .wrap{height:76px}
+  .mark span{font-size:1.125rem}
+  .nav{display:block}
+  .menu-btn,.drawer{display:none!important}
+}
+
+/* Hero */
+.hero{background:var(--violet);color:var(--paper);overflow:hidden;padding:0 16px 36px}
+.hero-grid{display:grid;gap:28px;padding-top:28px}
+.hero h1{font-stretch:62%;font-weight:860;font-size:clamp(3.25rem, 1.6rem + 5.6vw, 6rem);line-height:.9;letter-spacing:-.01em}
+.hero h1 span{display:block}
+.lede{margin-top:20px;font-size:clamp(1.125rem, 1rem + .4vw, 1.3125rem);line-height:1.45;color:var(--lavender);max-width:36ch}
+.offer{margin-top:16px;font-size:clamp(1.0625rem, 1rem + .25vw, 1.1875rem);line-height:1.4;max-width:40ch}
+.offer strong{font-weight:700;color:var(--dot-filter);white-space:nowrap}
+.actions{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.next{display:flex;align-items:center;gap:.55em;margin-top:18px;font-size:.9375rem;color:var(--lavender)}
+.next strong{color:var(--paper);font-weight:600}
+.hero-art{position:relative;margin:0 auto;width:min(100%, 420px)}
+.hero-art svg{width:100%;height:auto;overflow:visible}
+@media (min-width:560px){.actions{flex-direction:row;flex-wrap:wrap}}
+@media (min-width:1000px){
+  .hero-grid{grid-template-columns:repeat(7, 1fr);gap:20px;padding-top:52px;align-items:center}
+  .hero-copy{grid-column:1 / span 4}
+  .hero-art{grid-column:5 / span 3;width:100%;max-width:470px;margin:-18px 0 -26px auto}
+}
+
+/* The week rail */
+.rail{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:1fr;border-top:1.5px solid var(--lav-line);border-bottom:1px solid var(--lav-faint)}
+.rail li{display:grid;grid-template-columns:5.2rem 1fr;align-items:center;gap:12px;padding:10px 12px;position:relative}
+.rail li + li{border-top:1px solid var(--lav-faint)}
+.rail .day{display:grid;grid-template-columns:2.6rem auto;align-items:baseline}
+.rail .d{font-family:var(--display);font-stretch:130%;font-weight:760;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--lavender)}
+.rail .n{font-family:var(--display);font-stretch:58%;font-weight:820;font-size:1.75rem;line-height:1}
+.rail .s{font-size:.9375rem;line-height:1.3;color:var(--lavender);display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+.rail .s .i{width:1.1em;height:1.1em;color:var(--paper)}
+.rail .is-ready{background:var(--dot-filter);color:var(--night)}
+.rail .is-ready .s .i{color:var(--night)}
+.rail .is-ready .d,.rail .is-ready .s{color:var(--night)}
+.rail .is-ready .s{font-weight:600}
+.rail .is-best .s{color:var(--paper)}
+.mini-stamp{display:inline-block;font-family:var(--display);font-stretch:130%;font-weight:800;font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--paper);border:1.5px solid currentColor;border-radius:4px;padding:.25em .45em .2em;transform:rotate(-5deg);-webkit-mask:var(--speck) 0 0/120px 64px;mask:var(--speck) 0 0/120px 64px}
+.rail-note{padding:14px 0 0;font-size:.9375rem;color:var(--lavender);display:flex;gap:.55em;align-items:flex-start}
+.rail-note strong{color:var(--paper);font-weight:600}
+.dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--dot-filter);flex:none;box-shadow:inset 0 -1px 0 rgb(0 0 0 / .12)}
+.dot.esp{background:var(--dot-espresso)}
+.rail-note .dot{margin-top:.3em}
+@media (min-width:1000px){
+  .rail{grid-template-columns:repeat(7, 1fr);margin-top:34px;border-bottom:0}
+  .rail li{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 16px 18px 0;min-height:124px}
+  .rail li + li{border-top:0;border-left:1px solid var(--lav-faint);padding-left:16px}
+  .rail .day{display:flex;flex-direction:column;gap:6px}
+  .rail .n{font-size:2.25rem}
+  .rail .s{font-size:.875rem;margin-top:auto;flex-direction:column;align-items:flex-start;gap:8px}
+}
+
+/* Sections */
+.sec{padding:72px 16px}
+.sec-head{display:grid;gap:18px;margin-bottom:40px}
+.sec-head h2{font-stretch:64%;font-weight:830;font-size:clamp(2.4rem, 1.5rem + 3.2vw, 4.25rem);line-height:.94;letter-spacing:-.005em;color:var(--violet)}
+.sec-head p{max-width:52ch;color:var(--muted);font-size:1.125rem;line-height:1.5}
+@media (min-width:1000px){
+  .sec{padding-block:120px}
+  .sec-head{grid-template-columns:repeat(7, 1fr);gap:20px;align-items:end;margin-bottom:56px}
+  .sec-head h2{grid-column:1 / span 4}
+  .sec-head p{grid-column:5 / span 3;padding-bottom:6px}
+}
+
+/* Coffees */
+.coffees{list-style:none;margin:0;padding:0;border-top:2px solid var(--violet)}
+.coffee{display:grid;grid-template-columns:112px 1fr;gap:16px 18px;padding:28px 0 32px;border-bottom:1px solid var(--rule)}
+.coffee-bag{grid-row:span 1;align-self:start}
+.coffee-bag svg{width:100%;height:auto;filter:drop-shadow(0 14px 16px rgb(30 18 65 / .28))}
+.coffee-head{align-self:center}
+.coffee h3{font-stretch:66%;font-weight:820;font-size:clamp(1.75rem, 1.35rem + 1.4vw, 2.5rem);line-height:1;color:var(--violet)}
+.coffee .origin{margin-top:6px;font-weight:500;color:var(--muted);font-size:.9375rem}
+.coffee-body{grid-column:1 / -1;display:grid;gap:14px}
+.notes{font-family:var(--display);font-stretch:58%;font-weight:700;font-size:clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);line-height:1.02;color:var(--ink-text)}
+.coffee .desc{max-width:46ch;color:var(--ink-text)}
+.specs{grid-column:1 / -1;margin:0;display:grid;grid-template-columns:auto 1fr;border-top:1px solid var(--rule)}
+.specs dt,.specs dd{padding:9px 0;border-bottom:1px solid var(--rule)}
+.specs dt{color:var(--violet);padding-right:16px;align-self:center}
+.specs dd{margin:0;font-size:.9375rem;display:flex;align-items:center;gap:.5em;flex-wrap:wrap}
+.buy{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.buy .single{font-size:.9375rem;color:var(--muted)}
+.buy .single a{color:var(--violet);font-weight:600}
+@media (min-width:700px){
+  .coffee{grid-template-columns:160px 1fr 1fr;grid-template-rows:auto auto 1fr;gap:10px 32px}
+  .coffee-bag{grid-row:1 / -1}
+  .coffee-head{grid-column:2;grid-row:1;align-self:end}
+  .coffee-body{grid-column:2;grid-row:2;align-self:start}
+  .specs{grid-column:3;grid-row:1 / -1;align-self:start}
+  .buy{grid-column:2;grid-row:3;align-self:start;margin-top:10px}
+}
+@media (min-width:1000px){
+  .coffee{grid-template-columns:repeat(7, 1fr);gap:12px 20px;padding:44px 0 48px}
+  .coffee-bag{grid-column:1 / span 2;grid-row:1 / -1;max-width:236px}
+  .coffee-head{grid-column:3 / span 3;align-self:start}
+  .coffee-body{grid-column:3 / span 3}
+  .specs{grid-column:6 / span 2;grid-row:1 / -1}
+  .buy{grid-column:3 / span 3;margin-top:18px}
+}
+
+/* Plan builder */
+.plan-sec{background:var(--violet);color:var(--paper)}
+.plan-sec .sec-head h2{color:var(--paper)}
+.plan-sec .sec-head p{color:var(--lavender)}
+.controls{display:grid;gap:22px;margin:0 0 28px}
+.controls fieldset{border:0;margin:0;padding:0;min-width:0}
+.controls legend{padding:0;margin-bottom:10px;font-weight:500;font-size:.9375rem;color:var(--lavender)}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg label{position:relative;display:inline-flex}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:inline-flex;align-items:center;gap:.55em;min-height:46px;padding:.6em 1.1em;border-radius:999px;border:1.5px solid var(--lav-line);font-weight:600;font-size:.9375rem;color:var(--paper);transition:background-color .15s,color .15s,border-color .15s;cursor:pointer}
+.seg span small{font-weight:500;color:var(--lavender);font-size:.875rem}
+.seg label:hover span{border-color:var(--lavender)}
+.seg input:checked + span{background:var(--paper);color:var(--violet);border-color:var(--paper)}
+.seg input:checked + span small{color:var(--muted)}
+.seg input:focus-visible + span{outline:3px solid var(--dot-filter);outline-offset:3px}
+.plan{display:grid;gap:24px}
+.cal-wrap{min-width:0}
+.cal{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed;margin:0 -3px}
+.cal th{padding:0 0 6px;text-align:left;font-family:var(--display);font-stretch:130%;font-weight:760;font-size:.6875rem;letter-spacing:.07em;text-transform:uppercase;color:var(--lavender)}
+.cal td{position:relative;height:52px;padding:5px 5px;vertical-align:top;border-radius:5px;background:var(--violet-press);color:var(--lavender)}
+.cal .num{display:block;font-family:var(--display);font-stretch:60%;font-weight:760;font-size:1.0625rem;line-height:1}
+.cal .num small{font-stretch:110%;font-size:.625rem;letter-spacing:.06em;text-transform:uppercase;margin-left:.2em;font-weight:760}
+.cal .lab{display:none}
+.cal td.past{opacity:.42}
+.cal td.today{box-shadow:inset 0 0 0 2px var(--paper);color:var(--paper)}
+.cal td.rest{background:repeating-linear-gradient(135deg, rgb(190 182 232 / .55) 0 1.5px, transparent 1.5px 7px), var(--violet-press);color:var(--paper)}
+.cal td.best{background:var(--dot-filter);color:var(--night)}
+.cal.esp td.best{background:var(--dot-espresso)}
+.cal td.fade{background:var(--violet-press);box-shadow:inset 0 0 0 1.5px var(--hatch);color:var(--paper)}
+.cal .ev{position:absolute;right:4px;bottom:4px;display:flex;align-items:center}
+.cal .ev .i{width:14px;height:14px}
+.cal .cal-stamp{position:absolute;left:50%;top:60%;translate:-50% -50%;rotate:-9deg;font-family:var(--display);font-stretch:60%;font-weight:840;font-size:.6875rem;letter-spacing:.02em;line-height:1;text-transform:uppercase;color:var(--paper);border:1.5px solid currentColor;border-radius:3px;padding:.3em .35em .25em;-webkit-mask:var(--speck) 0 0/120px 64px;mask:var(--speck) 0 0/120px 64px;white-space:nowrap}
+.cal td.roast{background:var(--violet-press)}
+.cal td.roast.best{background:var(--dot-filter)}
+.cal td.roast.best .cal-stamp{color:var(--violet)}
+.cal.esp td.roast.best .cal-stamp{color:var(--night)}
+.legend{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px 20px;font-size:.875rem;color:var(--lavender)}
+.legend li{display:flex;align-items:center;gap:.55em}
+.sw{width:22px;height:16px;border-radius:3px;background:var(--violet-press);flex:none}
+.sw.rest{background:repeating-linear-gradient(135deg, rgb(190 182 232 / .7) 0 1.5px, transparent 1.5px 6px), var(--violet-press)}
+.sw.best{background:var(--dot-filter)}
+.esp-on .sw.best{background:var(--dot-espresso)}
+.sw.fade{box-shadow:inset 0 0 0 1.5px var(--hatch)}
+.legend .i{width:18px;height:18px;color:var(--paper)}
+.slip{position:relative;background:var(--paper);color:var(--ink-text);border-radius:6px;padding:30px 22px 24px;box-shadow:0 2px 2px rgb(0 0 0 / .14),0 24px 40px -22px rgb(0 0 0 / .5);
+  -webkit-mask:radial-gradient(circle 6px at 8px 0, transparent 97%, #000 100%) -8px 0 / 16px 100% repeat-x;
+          mask:radial-gradient(circle 6px at 8px 0, transparent 97%, #000 100%) -8px 0 / 16px 100% repeat-x}
+.slip h3{font-stretch:64%;font-weight:820;font-size:1.875rem;line-height:1;color:var(--violet)}
+.timeline{margin:18px 0 0;padding:0;list-style:none;display:grid}
+.timeline li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:.9375rem}
+.timeline li span:first-child{color:var(--muted)}
+.timeline li span:last-child{font-weight:600;text-align:right}
+.timeline li.hl span:last-child{background:var(--dot-filter);padding:0 .35em;border-radius:3px;color:var(--night)}
+.esp-on .timeline li.hl span:last-child{background:var(--dot-espresso)}
+.price{display:flex;align-items:baseline;gap:10px;margin-top:22px}
+.price b{font-family:var(--display);font-stretch:58%;font-weight:860;font-size:3.5rem;line-height:.9;color:var(--violet)}
+.price span{font-size:.9375rem;color:var(--muted);line-height:1.35}
+.gap-note{margin-top:14px;font-size:.9375rem;line-height:1.45;color:var(--ink-text)}
+.slip .btn{width:100%;margin-top:20px}
+.demo-note{margin-top:12px;font-size:.875rem;color:var(--muted);min-height:1.3em}
+@media (min-width:700px){
+  .controls{grid-template-columns:repeat(3, auto);justify-content:start;gap:28px 44px}
+  .cal td{height:66px;padding:7px 8px}
+  .cal .num{font-size:1.375rem}
+  .cal .cal-stamp{font-stretch:100%;font-size:.75rem;letter-spacing:.05em}
+  .cal .ev .i{width:16px;height:16px}
+}
+@media (min-width:1000px){
+  .plan{grid-template-columns:repeat(7, 1fr);gap:20px;align-items:start}
+  .cal-wrap{grid-column:1 / span 5}
+  .slip{grid-column:6 / span 2;margin-top:24px}
+  .cal td{height:78px;padding:8px 10px}
+  .cal .lab{display:block;position:absolute;left:10px;bottom:8px;right:26px;font-size:.75rem;line-height:1.15;font-weight:500}
+  .cal .cal-stamp{font-stretch:125%;font-size:.8125rem;top:54%}
+  .cal td.roast .lab{display:none}
+}
+
+/* Manage */
+.manage{display:grid;gap:40px}
+.manage h2{font-stretch:64%;font-weight:830;font-size:clamp(2.4rem, 1.5rem + 3.2vw, 4.25rem);line-height:.94;color:var(--violet)}
+.manage .copy p{margin-top:18px;max-width:44ch;font-size:1.125rem;color:var(--muted)}
+.can{list-style:none;margin:28px 0 0;padding:0;border-top:1px solid var(--rule)}
+.can li{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);font-weight:500}
+.can .i{color:var(--violet);width:22px;height:22px}
+.acct{position:relative;background:#fff;border-radius:6px;padding:26px 22px 22px;box-shadow:var(--lift);max-width:520px;
+  -webkit-mask:radial-gradient(circle 6px at 8px 0, transparent 97%, #000 100%) -8px 0 / 16px 100% repeat-x;
+          mask:radial-gradient(circle 6px at 8px 0, transparent 97%, #000 100%) -8px 0 / 16px 100% repeat-x}
+.acct-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.acct-top .caps{color:var(--violet);white-space:nowrap}
+.acct-top span:last-child{font-size:.875rem;color:var(--muted)}
+.acct-next{position:relative;padding:22px 0 20px}
+.acct-next .lbl{font-size:.9375rem;color:var(--muted)}
+.acct-next strong{display:block;margin-top:4px;font-family:var(--display);font-stretch:58%;font-weight:860;font-size:clamp(3rem, 2.2rem + 3vw, 4.5rem);line-height:.9;color:var(--violet)}
+.acct-next .moved{margin-top:8px;font-size:.9375rem;font-weight:600;color:var(--ink-text)}
+.big-stamp{position:absolute;right:4px;top:18px;font-family:var(--display);font-stretch:140%;font-weight:840;font-size:1.25rem;letter-spacing:.06em;text-transform:uppercase;color:var(--violet);border:3px solid currentColor;border-radius:10px;padding:.35em .6em .28em;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 4.5px currentColor;rotate:-8deg;-webkit-mask:var(--speck) 0 0/120px 64px;mask:var(--speck) 0 0/120px 64px;pointer-events:none}
+.big-stamp[hidden]{display:none}
+.acct-actions{display:flex;flex-wrap:wrap;gap:8px}
+.acct-actions button{display:inline-flex;align-items:center;gap:.5em;min-height:44px;padding:.5em 1em;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper);font-weight:600;font-size:.9375rem;cursor:pointer;transition:border-color .15s,background-color .15s}
+.acct-actions button:hover{border-color:var(--violet)}
+.acct-actions button[aria-pressed="true"]{background:var(--violet);border-color:var(--violet);color:var(--paper)}
+.acct-actions .i{width:18px;height:18px}
+.acct-status{margin-top:14px;min-height:1.4em;font-size:.9375rem;color:var(--muted)}
+.acct-foot{margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:.875rem;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px}
+.acct-foot button{background:none;border:0;padding:8px 0;font-weight:600;color:var(--violet);text-decoration:underline;text-underline-offset:.22em;cursor:pointer}
+@media (min-width:1000px){
+  .manage{grid-template-columns:repeat(7, 1fr);gap:20px;align-items:center}
+  .manage .copy{grid-column:1 / span 3}
+  .acct{grid-column:5 / span 3;justify-self:end;width:100%}
+}
+
+/* FAQ */
+.faq-sec{background:var(--paper-2)}
+.faq{display:grid;gap:28px}
+.faq h2{font-stretch:64%;font-weight:830;font-size:clamp(2.4rem, 1.5rem + 3.2vw, 4.25rem);line-height:.94;color:var(--violet)}
+.faq .copy p{margin-top:16px;color:var(--muted);max-width:34ch}
+.qa{border-top:2px solid var(--violet);padding-top:4px}
+.qa details{border-bottom:1px solid var(--rule)}
+.qa summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:20px;min-height:64px;padding:14px 0;cursor:pointer;font-weight:600;font-size:1.125rem;line-height:1.35}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary:hover{color:var(--violet)}
+.qa summary .i{width:22px;height:22px;color:var(--violet);transition:rotate .18s var(--ease-out)}
+.qa details[open] summary .i{rotate:45deg}
+.qa details p{padding:0 0 22px;max-width:62ch;color:var(--ink-text)}
+@media (min-width:1000px){
+  .faq{grid-template-columns:repeat(7, 1fr);gap:20px}
+  .faq .copy{grid-column:1 / span 3}
+  .qa{grid-column:4 / span 4}
+}
+
+/* Closing */
+.closing{background:var(--violet);color:var(--paper);overflow:hidden;padding:80px 16px}
+.closing .wrap{display:grid;gap:32px}
+.closing h2{font-stretch:60%;font-weight:860;font-size:clamp(3.25rem, 1.6rem + 5.6vw, 6rem);line-height:.9}
+.closing h2 span{display:block}
+.closing p{margin-top:20px;max-width:40ch;font-size:1.1875rem;color:var(--lavender)}
+.closing .actions{margin-top:28px}
+.closing-art{justify-self:center;width:min(100%, 440px)}
+.closing-art svg{width:100%;height:auto;overflow:visible}
+@media (min-width:1000px){
+  .closing{padding-block:128px}
+  .closing .wrap{grid-template-columns:repeat(7, 1fr);gap:20px;align-items:center}
+  .closing .copy{grid-column:1 / span 4}
+  .closing-art{grid-column:5 / span 3;width:100%}
+}
+
+/* Footer */
+.foot{background:var(--night);color:var(--lavender);padding:48px 16px 40px;font-size:.9375rem}
+.foot .wrap{display:grid;gap:28px}
+.foot .mark span{box-shadow:inset 0 0 0 2px var(--night),inset 0 0 0 3.25px currentColor}
+.foot ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 22px}
+.foot ul a{display:inline-flex;min-height:44px;align-items:center;text-decoration:none}
+.foot ul a:hover{color:var(--paper);text-decoration:underline}
+.foot .fine{border-top:1px solid rgb(214 205 248 / .18);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+.foot .fine strong{color:var(--paper);font-weight:600}
+.foot :focus-visible{outline-color:var(--dot-filter)}
+@media (min-width:1000px){.foot .wrap{grid-template-columns:auto 1fr;align-items:center}.foot ul{justify-content:flex-end}.foot .fine{grid-column:1 / -1}}
+
+/* Bag SVG text roles */
+.b-wide{font-family:var(--display);font-stretch:150%;font-weight:820}
+.b-cond{font-family:var(--display);font-stretch:56%;font-weight:880}
+.b-cap{font-family:var(--display);font-stretch:130%;font-weight:760;letter-spacing:.08em}
+.b-txt{font-family:var(--text);font-weight:600}
+
+/* The one authored moment: a stamp press */
+.press{transform-box:fill-box;transform-origin:50% 50%}
+@media (prefers-reduced-motion:no-preference){
+  .press.go{animation:press .52s var(--ease-out) both}
+  .hero .press.go{animation-delay:.38s}
+  @keyframes press{
+    0%{opacity:0;transform:scale(1.2) rotate(7deg);filter:blur(5px)}
+    55%{opacity:1}
+    100%{opacity:1;transform:none;filter:blur(0)}
+  }
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+/* Page gutters (after section shorthands so they win) */
+@media (min-width:700px){:root{--pad:32px}.top,.hero,.sec,.closing,.foot{padding-inline:32px}}
+@media (min-width:1100px){:root{--pad:56px}.top,.hero,.sec,.closing,.foot{padding-inline:56px}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="speck" width="120" height="64" patternUnits="userSpaceOnUse"><path id="speck-path" fill="#fff" fill-rule="evenodd" d="M0 0H120V64H0Z"/></pattern>
+    <mask id="ink" maskUnits="userSpaceOnUse" x="-2000" y="-2000" width="4000" height="4000"><rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#speck)"/></mask>
+    <pattern id="crimp-l" width="4" height="10" patternUnits="userSpaceOnUse"><rect width="4" height="10" fill="#eceaf6"/><rect width="1.6" height="10" fill="#d9d5ec"/></pattern>
+    <pattern id="crimp-d" width="4" height="10" patternUnits="userSpaceOnUse"><rect width="4" height="10" fill="#241750"/><rect width="1.6" height="10" fill="#170d36"/></pattern>
+    <linearGradient id="shade-l" x1="0" x2="1"><stop offset="0" stop-color="#d4cfea"/><stop offset=".16" stop-color="#f7f6fd"/><stop offset=".55" stop-color="#ffffff"/><stop offset=".86" stop-color="#eeecf8"/><stop offset="1" stop-color="#cbc5e6"/></linearGradient>
+    <linearGradient id="shade-d" x1="0" x2="1"><stop offset="0" stop-color="#120a2c"/><stop offset=".16" stop-color="#22164a"/><stop offset=".55" stop-color="#2a1c59"/><stop offset=".86" stop-color="#21154a"/><stop offset="1" stop-color="#110928"/></linearGradient>
+  </defs>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol>
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></symbol>
+  <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.69 0-3 1-3 3 0 2 1 2 1 3.5V13"/></symbol>
+  <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+</svg>
+
+<header class="top on-violet">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Rest Days, back to top"><span>Rest Days</span></a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        <li><a href="#coffees">Coffees</a></li>
+        <li><a href="#plan">Build a plan</a></li>
+        <li><a href="#manage">Skip or pause</a></li>
+        <li><a href="#faq">Questions</a></li>
+      </ul>
+    </nav>
+    <div class="top-actions">
+      <a class="btn btn-dot btn-sm" href="#plan"><span class="cta-long">Start a subscription</span><span class="cta-short">Subscribe</span></a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Open menu">
+        <svg class="i bars" aria-hidden="true"><use href="#i-menu"/></svg><svg class="i x" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="drawer" id="drawer" aria-label="Main">
+    <ul class="wrap">
+      <li><a href="#coffees">Coffees <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="#plan">Build a plan <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="#manage">Skip or pause <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="#faq">Questions <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero on-violet" aria-labelledby="hero-title">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1 id="hero-title"><span>Roasted Monday.</span> <span>Ready by Saturday.</span></h1>
+      <p class="lede">We roast your coffee to order every Monday and ship it that afternoon. It rests in the mail, lands midweek, and is ready for your pour-over by the weekend.</p>
+      <p class="offer">Whole-bean single origins every 2 or 4 weeks, <strong>from $17 a bag</strong> with shipping included.</p>
+      <div class="actions">
+        <a class="btn btn-dot" href="#plan">Start a subscription <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="#coffees">See this month's coffees</a>
+      </div>
+      <p class="next"><svg class="i" aria-hidden="true"><use href="#i-cal"/></svg><span>Next roast: <strong data-next="short">Mon 5 Oct</strong>. Order by Sunday 11 pm to make it.</span></p>
+    </div>
+    <figure class="hero-art" id="hero-art" role="img" aria-label="A white Rest Days bag of Kenyan coffee with the roast date stamped on its label and a green filter sticker. A dark bag, the next delivery, stands behind it."></figure>
+  </div>
+  <div class="wrap">
+    <ol class="rail" id="rail" aria-label="Your first week, day by day">
+      <li class="is-roast"><span class="day"><span class="d">Mon</span><span class="n" data-rail="0">5</span></span><span class="s"><span class="mini-stamp">Roasted</span> Stamped, shipped by 4 pm</span></li>
+      <li><span class="day"><span class="d">Tue</span><span class="n" data-rail="1">6</span></span><span class="s"><svg class="i" aria-hidden="true"><use href="#i-truck"/></svg> Resting in the mail</span></li>
+      <li><span class="day"><span class="d">Wed</span><span class="n" data-rail="2">7</span></span><span class="s"><svg class="i" aria-hidden="true"><use href="#i-box"/></svg> At your door</span></li>
+      <li><span class="day"><span class="d">Thu</span><span class="n" data-rail="3">8</span></span><span class="s"><svg class="i" aria-hidden="true"><use href="#i-hourglass"/></svg> Resting on the counter</span></li>
+      <li><span class="day"><span class="d">Fri</span><span class="n" data-rail="4">9</span></span><span class="s"><svg class="i" aria-hidden="true"><use href="#i-hourglass"/></svg> One more day</span></li>
+      <li class="is-ready"><span class="day"><span class="d">Sat</span><span class="n" data-rail="5">10</span></span><span class="s"><svg class="i" aria-hidden="true"><use href="#i-coffee"/></svg> Ready for pour-over</span></li>
+      <li class="is-best"><span class="day"><span class="d">Sun</span><span class="n" data-rail="6">11</span></span><span class="s">At its best until <span data-best-until>Wed 4 Nov</span></span></li>
+    </ol>
+    <p class="rail-note"><span class="dot esp" aria-hidden="true"></span><span>Pulling espresso? Give it a few more days. Ready from <strong data-esp-ready>Thu 15 Oct</strong>.</span></p>
+  </div>
+</section>
+
+<section class="sec" id="coffees" aria-labelledby="coffees-title">
+  <div class="wrap">
+    <header class="sec-head">
+      <h2 id="coffees-title">Three coffees on the roaster this month</h2>
+      <p>Subscriptions start on roaster's choice, which rotates through these three. Want one in particular? Pick it when you start, or swap before any Monday.</p>
+    </header>
+    <ol class="coffees">
+      <li class="coffee">
+        <div class="coffee-bag" data-bag="kenya" aria-hidden="true"></div>
+        <div class="coffee-head">
+          <h3>Nyeri Hill AA</h3>
+          <p class="origin">Nyeri County, Kenya</p>
+        </div>
+        <div class="coffee-body">
+          <p class="notes">Blackcurrant, pink grapefruit, demerara</p>
+          <p class="desc">Juicy and bright, with the savory-sweet blackcurrant that washed Kenyan coffees are loved for. Shines in a V60 or a flat-bottom dripper.</p>
+        </div>
+        <dl class="specs">
+          <dt class="caps">Process</dt><dd>Washed</dd>
+          <dt class="caps">Variety</dt><dd>SL28, SL34</dd>
+          <dt class="caps">Altitude</dt><dd>1,750 m</dd>
+          <dt class="caps">Brew</dt><dd><span class="dot" aria-hidden="true"></span>Filter</dd>
+          <dt class="caps">Rest</dt><dd>5 days</dd>
+        </dl>
+        <div class="buy">
+          <a class="btn btn-ink" href="#plan" data-pick="filter">Subscribe to this one <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <p class="single">or <a href="#plan">buy one bag, $22</a></p>
+        </div>
+      </li>
+      <li class="coffee">
+        <div class="coffee-bag" data-bag="ethiopia" aria-hidden="true"></div>
+        <div class="coffee-head">
+          <h3>Guji Highland</h3>
+          <p class="origin">Guji Zone, Oromia, Ethiopia</p>
+        </div>
+        <div class="coffee-body">
+          <p class="notes">Blueberry, jasmine, milk chocolate</p>
+          <p class="desc">A clean natural: ripe berry up front and something floral on the finish. Sweet enough for espresso, delicate enough for filter.</p>
+        </div>
+        <dl class="specs">
+          <dt class="caps">Process</dt><dd>Natural</dd>
+          <dt class="caps">Variety</dt><dd>Ethiopian landraces</dd>
+          <dt class="caps">Altitude</dt><dd>2,100 m</dd>
+          <dt class="caps">Brew</dt><dd><span class="dot" aria-hidden="true"></span>Filter <span class="dot esp" aria-hidden="true"></span>Espresso</dd>
+          <dt class="caps">Rest</dt><dd>5 days, or 10 for espresso</dd>
+        </dl>
+        <div class="buy">
+          <a class="btn btn-ink" href="#plan" data-pick="filter">Subscribe to this one <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <p class="single">or <a href="#plan">buy one bag, $20</a></p>
+        </div>
+      </li>
+      <li class="coffee">
+        <div class="coffee-bag" data-bag="colombia" aria-hidden="true"></div>
+        <div class="coffee-head">
+          <h3>Huila Terraza</h3>
+          <p class="origin">Huila, Colombia</p>
+        </div>
+        <div class="coffee-body">
+          <p class="notes">Red apple, panela, cocoa nib</p>
+          <p class="desc">Round, sweet and forgiving. Pulls a syrupy shot and keeps its shape under milk, so it suits a busy weekday machine.</p>
+        </div>
+        <dl class="specs">
+          <dt class="caps">Process</dt><dd>Washed</dd>
+          <dt class="caps">Variety</dt><dd>Caturra, Castillo</dd>
+          <dt class="caps">Altitude</dt><dd>1,650 m</dd>
+          <dt class="caps">Brew</dt><dd><span class="dot esp" aria-hidden="true"></span>Espresso</dd>
+          <dt class="caps">Rest</dt><dd>10 days</dd>
+        </dl>
+        <div class="buy">
+          <a class="btn btn-ink" href="#plan" data-pick="espresso">Subscribe to this one <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <p class="single">or <a href="#plan">buy one bag, $19</a></p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec plan-sec on-violet" id="plan" aria-labelledby="plan-title">
+  <div class="wrap">
+    <header class="sec-head">
+      <h2 id="plan-title">Pick a rhythm. See the good days.</h2>
+      <p>Choose how you brew and how often. Every roast day gets stamped, every delivery marked, and the days each bag is at its best light up.</p>
+    </header>
+    <form class="controls" id="controls" aria-label="Build your plan">
+      <fieldset>
+        <legend>How do you brew?</legend>
+        <div class="seg">
+          <label><input type="radio" name="brew" value="filter" checked><span><i class="dot" aria-hidden="true"></i>Pour-over and filter</span></label>
+          <label><input type="radio" name="brew" value="espresso"><span><i class="dot esp" aria-hidden="true"></i>Espresso</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>How often?</legend>
+        <div class="seg">
+          <label><input type="radio" name="every" value="14" checked><span>Every 2 weeks</span></label>
+          <label><input type="radio" name="every" value="28"><span>Every 4 weeks</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Bag size</legend>
+        <div class="seg">
+          <label><input type="radio" name="size" value="17" checked><span>250 g <small>$17</small></span></label>
+          <label><input type="radio" name="size" value="31"><span>500 g <small>$31</small></span></label>
+          <label><input type="radio" name="size" value="56"><span>1 kg <small>$56</small></span></label>
+        </div>
+      </fieldset>
+    </form>
+    <div class="plan">
+      <div class="cal-wrap">
+        <table class="cal" id="cal">
+          <caption class="sr">Six weeks of your plan, starting this week</caption>
+          <thead><tr><th scope="col">Mon</th><th scope="col">Tue</th><th scope="col">Wed</th><th scope="col">Thu</th><th scope="col">Fri</th><th scope="col">Sat</th><th scope="col">Sun</th></tr></thead>
+          <tbody id="cal-body"></tbody>
+        </table>
+        <ul class="legend" id="legend">
+          <li><svg class="i" aria-hidden="true"><use href="#i-stamp"/></svg>Roast day</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-box"/></svg>At your door</li>
+          <li><span class="sw rest" aria-hidden="true"></span>Resting</li>
+          <li><span class="sw best" aria-hidden="true"></span>At its best</li>
+          <li><span class="sw fade" aria-hidden="true"></span>Past its best</li>
+        </ul>
+      </div>
+      <aside class="slip" aria-labelledby="slip-title">
+        <h3 id="slip-title">Your first bag</h3>
+        <ol class="timeline" id="timeline">
+          <li><span>Roasted</span><span data-t="roast">Mon 5 Oct</span></li>
+          <li><span>At your door</span><span data-t="door">Wed 7 Oct</span></li>
+          <li class="hl"><span>Ready to brew</span><span data-t="ready">Sat 10 Oct</span></li>
+          <li><span>At its best until</span><span data-t="until">Wed 4 Nov</span></li>
+        </ol>
+        <p class="price"><b id="price">$17</b><span id="price-note">per delivery, about $37 a month. Shipping included.</span></p>
+        <p class="gap-note" id="gap-note">A new bag is always ready before the last one fades.</p>
+        <button class="btn btn-ink" type="button" id="start">Start this plan <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <p class="demo-note" id="demo-note" aria-live="polite"></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="manage" aria-labelledby="manage-title">
+  <div class="wrap manage">
+    <div class="copy">
+      <h2 id="manage-title">Skip, pause or swap from your phone.</h2>
+      <p>Change anything until Sunday at 11 pm and Monday's roast follows. Cancelling is one button, not a phone call.</p>
+      <ul class="can">
+        <li><svg class="i" aria-hidden="true"><use href="#i-skip"/></svg>Skip any single roast</li>
+        <li><svg class="i" aria-hidden="true"><use href="#i-pause"/></svg>Pause for up to three months</li>
+        <li><svg class="i" aria-hidden="true"><use href="#i-swap"/></svg>Swap the coffee or the bag size</li>
+        <li><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg>Cancel whenever you like</li>
+      </ul>
+    </div>
+    <div class="acct" aria-labelledby="acct-title">
+      <div class="acct-top"><span class="caps" id="acct-title">Your plan</span><span id="acct-plan">Nyeri Hill AA, 250 g, every 2 weeks</span></div>
+      <div class="acct-next">
+        <span class="lbl">Next roast</span>
+        <strong id="acct-date" data-next="short">Mon 5 Oct</strong>
+        <p class="moved" id="acct-moved" hidden></p>
+        <span class="big-stamp" id="acct-stamp" hidden><span class="press" style="display:inline-block">Skipped</span></span>
+      </div>
+      <div class="acct-actions">
+        <button type="button" id="b-skip" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-skip"/></svg><span>Skip this roast</span></button>
+        <button type="button" id="b-pause" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span></button>
+        <button type="button" id="b-swap"><svg class="i" aria-hidden="true"><use href="#i-swap"/></svg><span>Swap coffee</span></button>
+      </div>
+      <p class="acct-status" id="acct-status" aria-live="polite">Try the buttons. This plan is a demo.</p>
+      <div class="acct-foot"><span>Changes lock Sunday 11 pm</span><button type="button" id="b-cancel">Cancel plan</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec faq-sec" id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq">
+    <div class="copy">
+      <h2 id="faq-title">Before your first bag</h2>
+      <p>The short answers to what people ask before they start.</p>
+    </div>
+    <div class="qa">
+      <details open>
+        <summary>When is the cutoff for the next roast?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>Sunday at 11 pm Eastern. Anything you order or change after that goes into the following Monday's roast.</p>
+      </details>
+      <details>
+        <summary>Can I skip, pause or swap a delivery?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>Yes. Skip any single roast, pause for up to three months, or switch coffee and bag size from your account, right up to the Sunday cutoff.</p>
+      </details>
+      <details>
+        <summary>How do I cancel?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>Tap Cancel plan in your account. It takes effect straight away and nothing else ships or gets charged.</p>
+      </details>
+      <details>
+        <summary>Why does fresh coffee need to rest?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>Freshly roasted beans keep releasing carbon dioxide for days. Brewed too soon, that gas pushes water away from the grounds and the cup tastes sharp and thin. Filter needs about 5 days and espresso about 10. Most of that rest happens on the way to you.</p>
+      </details>
+      <details>
+        <summary>Do you sell ground coffee?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>No, whole bean only. Ground coffee goes flat within days, which would undo the point of a roast date. If you are still using pre-ground, a burr grinder is the best upgrade you can make.</p>
+      </details>
+      <details>
+        <summary>Where do you ship, and what does it cost?<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+        <p>Anywhere in the contiguous US. Shipping is included in every subscription price, and most bags arrive two to three days after the roast.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="closing on-violet" aria-labelledby="closing-title">
+  <div class="wrap">
+    <div class="copy">
+      <h2 id="closing-title"><span>Next roast:</span> <span data-next="long">Monday 5 Oct.</span></h2>
+      <p>Order by Sunday at 11 pm and your first bag goes into that batch. The rest days are on us.</p>
+      <div class="actions">
+        <a class="btn btn-dot" href="#plan">Start a subscription <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="#coffees">See the coffees</a>
+      </div>
+    </div>
+    <div class="closing-art" id="closing-art" aria-hidden="true"></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Rest Days, back to top"><span>Rest Days</span></a>
+    <ul>
+      <li><a href="#coffees">Coffees</a></li>
+      <li><a href="#plan">Build a plan</a></li>
+      <li><a href="#manage">Skip or pause</a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ul>
+    <div class="fine"><strong>Portfolio demo. Fictional brand.</strong><span>Coffees, prices and dates are sample content. Nothing here can be ordered.</span></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var DOWL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function day(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate(),12)}
+  function add(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return day(x)}
+  function diff(a,b){return Math.round((day(a)-day(b))/864e5)}
+  function short(d){return DOW[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]}
+  function stampDate(d){return String(d.getDate()).padStart(2,'0')+' '+MON[d.getMonth()].toUpperCase()+' '+d.getFullYear()}
+  /* Ink speckle: seeded vector voids, so stamps look the same at any pixel density */
+  function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  (function(){
+    var r=rng(20261005), W=120, H=64, d='M0 0H'+W+'V'+H+'H0Z';
+    function c(x,y,s){return 'M'+(x-s).toFixed(2)+' '+y.toFixed(2)+'a'+s.toFixed(2)+' '+s.toFixed(2)+' 0 1 0 '+(2*s).toFixed(2)+' 0a'+s.toFixed(2)+' '+s.toFixed(2)+' 0 1 0 '+(-2*s).toFixed(2)+' 0'}
+    for(var i=0;i<120;i++)d+=c(r()*W,r()*H,.28+r()*.5);
+    for(i=0;i<12;i++)d+=c(r()*W,r()*H,.9+r()*.7);
+    for(i=0;i<3;i++){var cx=8+r()*(W-16),cy=6+r()*(H-12);for(var j=0;j<5;j++)d+=c(cx+(r()-.5)*7,cy+(r()-.5)*3,.9+r()*1.2)}
+    document.getElementById('speck-path').setAttribute('d',d);
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'"><path fill="#000" fill-rule="evenodd" d="'+d+'"/></svg>';
+    document.documentElement.style.setProperty('--speck','url("data:image/svg+xml,'+encodeURIComponent(svg)+'")');
+  })();
+  var today=day(new Date());
+  var toMon=(8-today.getDay())%7||7;
+  var roast=add(today,toMon);
+  var WIN={filter:{rest:5,best:30},espresso:{rest:10,best:35}};
+  var TRANSIT=2;
+
+  document.querySelectorAll('[data-next="short"]').forEach(function(el){el.textContent=short(roast)});
+  document.querySelectorAll('[data-next="long"]').forEach(function(el){el.textContent=DOWL[roast.getDay()]+' '+roast.getDate()+' '+MON[roast.getMonth()]+'.'});
+  document.querySelectorAll('[data-rail]').forEach(function(el){el.textContent=add(roast,+el.dataset.rail).getDate()});
+  document.querySelectorAll('[data-best-until]').forEach(function(el){el.textContent=short(add(roast,WIN.filter.best))});
+  document.querySelectorAll('[data-esp-ready]').forEach(function(el){el.textContent=short(add(roast,WIN.espresso.rest))});
+
+  /* Bags */
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+  function bag(o){
+    var dark=o.tone==='dark';
+    var ink='#5429b3', paper='#ffffff';
+    var s='';
+    s+='<path d="M36 30 H264 L272 382 Q272 399 255 400 H45 Q28 399 28 382 Z" fill="url(#shade-'+(dark?'d':'l')+')"/>';
+    s+='<rect x="36" y="30" width="228" height="30" fill="url(#crimp-'+(dark?'d':'l')+')"/>';
+    s+='<path d="M36 60 H264" stroke="'+(dark?'#0f0826':'#cfcae6')+'" stroke-width="1.2"/>';
+    s+='<path d="M36 70 l7 4 l-7 4 Z M264 70 l-7 4 l7 4 Z" fill="'+(dark?'#0f0826':'#cfcae6')+'"/>';
+    s+='<circle cx="150" cy="92" r="12" fill="'+(dark?'#1a1040':'#f1effa')+'" stroke="'+(dark?'#0f0826':'#d3cee9')+'" stroke-width="1.2"/><circle cx="150" cy="92" r="6.5" fill="none" stroke="'+(dark?'#3a2b70':'#c9c3e3')+'" stroke-width="1.2"/>';
+    s+='<path d="M28 382 Q150 392 272 382" fill="none" stroke="'+(dark?'#0f0826':'#d7d2ec')+'" stroke-width="1"/>';
+    // label
+    s+='<rect x="58" y="120" width="184" height="244" rx="2" fill="'+paper+'" stroke="'+ink+'" stroke-width="1.6"/>';
+    s+='<rect x="62" y="124" width="176" height="236" rx="1" fill="none" stroke="'+ink+'" stroke-width=".6"/>';
+    s+='<text x="150" y="147" text-anchor="middle" class="b-wide" font-size="13" letter-spacing="1.2" fill="'+ink+'">REST DAYS</text>';
+    s+='<path d="M72 156 H228 M72 159 H228" stroke="'+ink+'" stroke-width=".8"/>';
+    s+='<text x="150" y="199" text-anchor="middle" class="b-cond" font-size="42" fill="'+ink+'">'+esc(o.country)+'</text>';
+    s+='<text x="150" y="217" text-anchor="middle" class="b-txt" font-size="11" fill="#1b1630">'+esc(o.name)+'</text>';
+    var rows=o.rows, y=236;
+    rows.forEach(function(r){
+      s+='<path d="M72 '+(y-10)+' H228" stroke="'+ink+'" stroke-width=".5" opacity=".6"/>';
+      s+='<text x="72" y="'+(y+2)+'" class="b-cap" font-size="6.6" fill="'+ink+'">'+esc(r[0])+'</text>';
+      s+='<text x="228" y="'+(y+2)+'" text-anchor="end" class="b-txt" font-size="9" fill="#1b1630">'+esc(r[1])+'</text>';
+      y+=18;
+    });
+    s+='<path d="M72 '+(y-10)+' H228" stroke="'+ink+'" stroke-width=".5" opacity=".6"/>';
+    // stamp
+    s+='<g transform="translate(150 '+(o.stampY||318)+') rotate(-6)"><g class="press'+(o.press?' go':'')+'"><g mask="url(#ink)">';
+    s+='<rect x="-66" y="-23" width="132" height="46" rx="7" fill="none" stroke="'+ink+'" stroke-width="2.4"/>';
+    s+='<rect x="-61.5" y="-18.5" width="123" height="37" rx="4.5" fill="none" stroke="'+ink+'" stroke-width=".9"/>';
+    s+='<text x="0" y="-5" text-anchor="middle" class="b-cap" font-size="7.4" fill="'+ink+'">ROASTED ON</text>';
+    s+='<text x="0" y="13.5" text-anchor="middle" class="b-cond" font-size="19" letter-spacing=".6" fill="'+ink+'">'+esc(o.stamp)+'</text>';
+    s+='</g></g></g>';
+    // stickers
+    (o.stickers||[]).forEach(function(k,i){
+      var cx=[236,248][i], cy=[124,176][i], r=[26,21][i];
+      var col=k==='filter'?'#ddf93c':'#ff7333';
+      s+='<g transform="rotate('+(i?9:-8)+' '+cx+' '+cy+')">';
+      s+='<circle cx="'+cx+'" cy="'+(cy+1.6)+'" r="'+r+'" fill="#1e1241" opacity=".22"/>';
+      s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'"/>';
+      s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-3.2)+'" fill="none" stroke="#1e1241" stroke-width=".5" opacity=".35"/>';
+      s+='<text x="'+cx+'" y="'+(cy+3)+'" text-anchor="middle" class="b-cap" font-size="'+(k==='filter'?(r>24?8.2:7):(r>24?6.4:5.4))+'" fill="#1e1241">'+(k==='filter'?'FILTER':'ESPRESSO')+'</text>';
+      s+='</g>';
+    });
+    return s;
+  }
+  var stamp=stampDate(roast);
+  var C={
+    kenya:{country:'KENYA',name:'Nyeri Hill AA',rows:[['PROCESS','Washed'],['ALTITUDE','1,750 m'],['NET WT','250 g whole bean']],stickers:['filter']},
+    ethiopia:{country:'ETHIOPIA',name:'Guji Highland',rows:[['PROCESS','Natural'],['ALTITUDE','2,100 m'],['NET WT','250 g whole bean']],stickers:['filter','espresso']},
+    colombia:{country:'COLOMBIA',name:'Huila Terraza',rows:[['PROCESS','Washed'],['ALTITUDE','1,650 m'],['NET WT','250 g whole bean']],stickers:['espresso']}
+  };
+  function opts(k,extra){var o=Object.assign({},C[k],{stamp:stamp},extra||{});return o}
+  document.getElementById('hero-art').innerHTML=
+    '<svg viewBox="0 0 540 560" aria-hidden="true">'+
+      '<g style="filter:drop-shadow(0 22px 26px rgb(20 8 60 / .5))" transform="translate(236 6) rotate(7 150 215) scale(.9)">'+bag(opts('colombia',{tone:'dark'}))+'</g>'+
+      '<g style="filter:drop-shadow(0 26px 30px rgb(20 8 60 / .55))" transform="translate(6 88) rotate(-2.5 150 215) scale(1.1)">'+bag(opts('kenya',{tone:'light',press:true}))+'</g>'+
+    '</svg>';
+  document.querySelectorAll('[data-bag]').forEach(function(el){
+    el.innerHTML='<svg viewBox="20 24 262 384">'+bag(opts(el.dataset.bag,{tone:'dark'}))+'</svg>';
+  });
+  // Closing: one big stamp in lavender ink
+  document.getElementById('closing-art').innerHTML=
+    '<svg viewBox="0 0 440 300"><g transform="translate(220 150) rotate(-8)"><g mask="url(#ink)" fill="none" stroke="#d6cdf8">'+
+    '<rect x="-196" y="-104" width="392" height="208" rx="22" stroke-width="7"/><rect x="-181" y="-89" width="362" height="178" rx="14" stroke-width="2.5"/>'+
+    '<text x="0" y="-38" text-anchor="middle" class="b-wide" font-size="30" letter-spacing="4" fill="#d6cdf8" stroke="none">ROASTED ON</text>'+
+    '<path d="M-150 -18 H150" stroke-width="2"/>'+
+    '<text x="0" y="58" text-anchor="middle" class="b-cond" font-size="84" letter-spacing="2" fill="#d6cdf8" stroke="none">'+stamp+'</text>'+
+    '</g></g></svg>';
+
+  /* Header menu */
+  var mb=document.querySelector('.menu-btn'), dr=document.getElementById('drawer');
+  mb.addEventListener('click',function(){var o=mb.getAttribute('aria-expanded')!=='true';mb.setAttribute('aria-expanded',o);mb.setAttribute('aria-label',o?'Close menu':'Open menu');dr.classList.toggle('open',o)});
+  dr.addEventListener('click',function(e){if(e.target.closest('a')){mb.setAttribute('aria-expanded','false');mb.setAttribute('aria-label','Open menu');dr.classList.remove('open')}});
+
+  /* Plan calendar */
+  var form=document.getElementById('controls'), body=document.getElementById('cal-body'), cal=document.getElementById('cal');
+  var plan=document.getElementById('plan');
+  function val(n){return form.querySelector('input[name="'+n+'"]:checked').value}
+  var start=add(today,-((today.getDay()+6)%7));
+  function render(stampIt){
+    var brew=val('brew'), every=+val('every'), price=+val('size'), w=WIN[brew];
+    var end=add(start,42), roasts=[];
+    for(var r=roast;r<end;r=add(r,every))roasts.push(r);
+    var html='', fadeDays=0, firstReady=add(roast,w.rest);
+    for(var i=0;i<42;i++){
+      var d=add(start,i), cls=[], label='', ev='', st='', best=false, fade=false, rest=false, isRoast=false, isDoor=false;
+      var readyBag=-1;
+      roasts.forEach(function(r,k){
+        var age=diff(d,r); if(age<0)return;
+        if(age===0)isRoast=true; if(age===TRANSIT)isDoor=true; if(age===w.rest)readyBag=k;
+        if(age<w.rest)rest=true; else if(age<=w.best)best=true; else fade=true;
+      });
+      var state=best?'best':fade?'fade':rest?'rest':'';
+      if(state)cls.push(state);
+      if(state==='fade'&&d>=firstReady)fadeDays++;
+      if(diff(d,today)<0)cls.push('past');
+      if(diff(d,today)===0)cls.push('today');
+      if(isRoast){cls.push('roast');st='<span class="cal-stamp press go">Roast</span>'}
+      if(isDoor)ev='<span class="ev"><svg class="i" aria-hidden="true"><use href="#i-box"/></svg></span>';
+      label=isRoast?'Roast day':isDoor?'At your door':readyBag===0?'Ready to brew':readyBag>0?'Next bag ready':state==='rest'?'Resting':state==='fade'?'Past its best':diff(d,today)===0?'Today':'';
+      var aLabel=label||(state==='best'?'At its best':'');
+      var num=d.getDate(), m=(num===1||i===0)?'<small>'+MON[d.getMonth()]+'</small>':'';
+      var aria=DOWL[d.getDay()]+' '+num+' '+MON[d.getMonth()]+(aLabel?': '+aLabel:'')+(isRoast&&state==='best'?', open bag at its best':'');
+      if(i%7===0)html+='<tr>';
+      html+='<td class="'+cls.join(' ')+'" aria-label="'+aria+'"><span class="num" aria-hidden="true">'+num+m+'</span>'+(label&&!isRoast?'<span class="lab" aria-hidden="true">'+label+'</span>':'')+st+ev+'</td>';
+      if(i%7===6)html+='</tr>';
+    }
+    body.innerHTML=html;
+    if(!stampIt)body.querySelectorAll('.press.go').forEach(function(e){e.classList.remove('go')});
+    cal.classList.toggle('esp',brew==='espresso');
+    plan.classList.toggle('esp-on',brew==='espresso');
+    var t={roast:roast,door:add(roast,TRANSIT),ready:add(roast,w.rest),until:add(roast,w.best)};
+    Object.keys(t).forEach(function(k){document.querySelector('[data-t="'+k+'"]').textContent=short(t[k])});
+    document.getElementById('price').textContent='$'+price;
+    var month=Math.round(price*(every===14?26:13)/12);
+    document.getElementById('price-note').textContent='per delivery, about $'+month+' a month. Shipping included.';
+    document.getElementById('gap-note').textContent=fadeDays?
+      'On this rhythm your open bag runs '+fadeDays+' days past its best before the next one is ready. Still good coffee, just quieter. Every 2 weeks closes the gap.':
+      'A new bag is always ready before the last one fades.';
+    document.getElementById('demo-note').textContent='';
+  }
+  render(false);
+  form.addEventListener('change',function(){render(true)});
+  document.querySelectorAll('[data-pick]').forEach(function(a){a.addEventListener('click',function(){
+    var r=form.querySelector('input[name="brew"][value="'+a.dataset.pick+'"]'); if(r&&!r.checked){r.checked=true;render(true)}
+  })});
+  document.getElementById('start').addEventListener('click',function(){
+    document.getElementById('demo-note').textContent='This is a portfolio demo, so checkout stops here. Nothing was ordered.';
+  });
+
+  /* Account slip demo */
+  var coffees=['Nyeri Hill AA','Guji Highland','Huila Terraza'], ci=0, skipped=false, paused=false;
+  var $=function(id){return document.getElementById(id)};
+  function planText(){return coffees[ci]+', 250 g, every 2 weeks'}
+  function press(el){var p=el.querySelector('.press');p.classList.remove('go');void p.offsetWidth;p.classList.add('go')}
+  function showStamp(txt){var s=$('acct-stamp');s.querySelector('.press').textContent=txt;s.hidden=false;press(s)}
+  $('b-skip').addEventListener('click',function(){
+    if(paused)return;
+    skipped=!skipped; this.setAttribute('aria-pressed',skipped);
+    this.querySelector('span').textContent=skipped?'Undo skip':'Skip this roast';
+    if(skipped){showStamp('Skipped');$('acct-moved').hidden=false;$('acct-moved').textContent='Your next bag roasts '+short(add(roast,14))+' instead.';$('acct-status').textContent='Skipped. Nothing ships this week and you will not be charged.'}
+    else{$('acct-stamp').hidden=true;$('acct-moved').hidden=true;$('acct-status').textContent='Back on. Your bag roasts '+short(roast)+'.'}
+  });
+  $('b-pause').addEventListener('click',function(){
+    paused=!paused; this.setAttribute('aria-pressed',paused);
+    this.querySelector('span').textContent=paused?'Resume':'Pause';
+    if(paused){skipped=false;$('b-skip').setAttribute('aria-pressed','false');$('b-skip').querySelector('span').textContent='Skip this roast';showStamp('Paused');$('acct-moved').hidden=true;$('acct-status').textContent='Paused. Nothing roasts or ships until you resume.'}
+    else{$('acct-stamp').hidden=true;$('acct-status').textContent='Resumed. Your bag roasts '+short(roast)+'.'}
+  });
+  $('b-swap').addEventListener('click',function(){ci=(ci+1)%coffees.length;$('acct-plan').textContent=planText();$('acct-status').textContent='Swapped to '+coffees[ci]+' for your next roast.'});
+  $('b-cancel').addEventListener('click',function(){$('acct-status').textContent='In the real account, this cancels on the spot. In this demo, nothing changes.'});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hourcard | Time tracking that ends in an invoice</title>
+<meta name="description" content="Hourcard is time tracking for studios and agencies of 2 to 50 people. One-click timers, weekly client reports and invoices from tracked hours. Portfolio demo, fictional brand.">
+<meta name="theme-color" content="#1D5B44">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231D5B44'/%3E%3Cpath fill='%23F6D84E' fill-rule='evenodd' d='M8 5h11l5 5v17H8zM12.5 9.5a1.8 1.8 0 1 0 0 .01z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Doto:wght@600..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mat:#1D5B44; --mat-deep:#154633; --mat-hover:#236B50;
+  --grid:rgba(206,232,216,.07); --grid-major:rgba(206,232,216,.15);
+  --on-mat:#FFFFFF; --on-mat-2:#CDE3D5;
+  --bond:#F3F4EE; --sheet:#FFFFFF; --canary:#F6D84E; --canary-hover:#FAE27C; --pink:#F2B2BF;
+  --ink:#15201A; --ink-2:#46534C; --ink-canary:#564610; --ink-pink:#74293D; --line-pink:rgba(116,41,61,.32); --red:#A82D18; --red-on-pink:#8A2414;
+  --rule:rgba(29,91,68,.26); --rule-strong:rgba(29,91,68,.62);
+  --r-sheet:2px; --r-control:6px;
+  --shadow-paper:0 1px 1px rgba(8,28,18,.22), 0 14px 28px -10px rgba(8,28,18,.46);
+  --shadow-lift:0 3px 3px rgba(8,28,18,.16), 0 38px 52px -16px rgba(8,28,18,.58);
+  --shadow-desk:0 1px 1px rgba(20,32,26,.10), 0 16px 32px -18px rgba(20,32,26,.34);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --f:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-stamp:"Doto","Archivo",sans-serif;
+  --gutter:56px;
+  --noise:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scrollbar-color:var(--mat) var(--bond);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+::-webkit-scrollbar{width:14px;height:14px}
+::-webkit-scrollbar-track{background:var(--bond)}
+::-webkit-scrollbar-thumb{background:var(--mat);border:3px solid var(--bond);border-radius:8px}
+body{margin:0;background:var(--bond);color:var(--ink);font-family:var(--f);font-size:1.0625rem;line-height:1.6;font-stretch:100%;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+::selection{background:var(--canary);color:var(--ink)}
+input,textarea{caret-color:var(--mat)}
+:focus-visible{outline:3px solid var(--mat);outline-offset:3px;border-radius:3px}
+.mat :focus-visible{outline-color:var(--canary)}
+a{color:inherit;text-underline-offset:.22em;text-decoration-thickness:1.5px}
+img,svg{display:block}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;z-index:20;background:var(--canary);color:var(--ink);padding:10px 14px;border-radius:var(--r-control);font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+.num{font-variant-numeric:tabular-nums}
+.stamp{font-family:var(--f-stamp);font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:1320px;margin-inline:auto;padding-inline:var(--gutter)}
+.form-label{font-size:.6875rem;font-stretch:75%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mat);line-height:1.2}
+
+/* surfaces */
+.mat{position:relative;isolation:isolate;background-color:var(--mat);color:var(--on-mat)}
+.mat::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:
+  linear-gradient(var(--grid-major) 1px,transparent 1px),linear-gradient(90deg,var(--grid-major) 1px,transparent 1px),
+  linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),var(--noise);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px,180px 180px;background-position:-1px -1px}
+.section{padding:128px 56px}
+.section>.wrap{padding-inline:0;max-width:1208px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:inherit;font-weight:700;font-stretch:96%;font-size:1rem;line-height:1;padding:17px 22px;border-radius:var(--r-control);border:0;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background-color .2s,box-shadow .2s,transform .2s var(--ease),color .2s}
+.btn .i{width:18px;height:18px;transition:transform .3s var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn:hover .i-go{transform:translateX(3px)}
+.btn-canary{background:var(--canary);color:var(--ink);box-shadow:0 1px 0 rgba(8,28,18,.3),0 10px 18px -10px rgba(8,28,18,.6)}
+.btn-canary:hover{background:var(--canary-hover)}
+.btn-line{background:transparent;color:var(--on-mat);box-shadow:inset 0 0 0 1.5px rgba(206,232,216,.55)}
+.btn-line:hover{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px var(--on-mat)}
+.btn-mat{background:var(--mat);color:#fff}
+.btn-mat:hover{background:var(--mat-hover)}
+.btn-ink{background:var(--ink);color:#fff}
+.btn-ink:hover{background:#2A3A31}
+.btn-sm{padding:10px 14px;font-size:.875rem;gap:8px}
+.btn-sm .i{width:16px;height:16px}
+.btn:disabled{opacity:.7;cursor:progress}
+
+/* ---------- hero ---------- */
+.hero{overflow:hidden;padding-bottom:96px}
+.ruler{height:22px;position:relative;border-bottom:1px solid var(--grid-major);
+  background:repeating-linear-gradient(90deg,rgba(206,232,216,.34) 0 1px,transparent 1px 24px) left bottom/100% 6px no-repeat,
+  repeating-linear-gradient(90deg,rgba(206,232,216,.55) 0 1px,transparent 1px 120px) left bottom/100% 13px no-repeat;background-position:-1px 100%}
+.ruler span{position:absolute;top:3px;font-size:.6875rem;font-weight:600;color:rgba(205,227,213,.7);font-variant-numeric:tabular-nums;transform:translateX(5px)}
+.nav{display:flex;align-items:center;gap:32px;padding-block:20px}
+.brand{display:flex;align-items:center;gap:10px;font-stretch:112%;font-weight:800;font-size:1.375rem;letter-spacing:-.01em;text-decoration:none;color:var(--on-mat)}
+.brand svg{width:21px;height:27px}
+.nav-links{display:flex;gap:28px;list-style:none;margin:0 0 0 auto;padding:0;font-size:.9375rem;font-weight:500}
+.nav-links a{color:var(--on-mat-2);text-decoration:none;padding-block:6px}
+.nav-links a:hover{color:var(--on-mat);text-decoration:underline}
+.nav-actions{display:flex;align-items:center;gap:22px}
+.nav-signin{font-size:.9375rem;font-weight:600;color:var(--on-mat);text-decoration:none}
+.nav-signin:hover{text-decoration:underline}
+
+.hero-grid{display:grid;grid-template-columns:minmax(0,5.1fr) minmax(0,6.9fr);gap:48px;align-items:center;padding-top:40px}
+.hero h1{font-size:clamp(3rem,5.5vw,5rem);font-stretch:82%;font-weight:800;line-height:.94;letter-spacing:-.02em}
+.hero h1 span{display:block}
+.hero h1 .friday{color:var(--canary);margin-top:.06em}
+.lead{font-size:clamp(1.1rem,1.35vw,1.28rem);line-height:1.5;color:var(--on-mat-2);max-width:38ch;margin:28px 0 36px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.fine{font-size:.9375rem;color:var(--on-mat-2);margin-top:18px}
+
+/* desk demo */
+.desk{position:relative;height:650px;width:calc(100% + 64px);margin-right:-64px;max-width:760px;margin-left:auto}
+.tc-wrap{position:absolute;left:0;top:0;width:62%;z-index:2;transform:rotate(-1.4deg);transform-origin:40% 0;transition:transform .7s var(--ease) .45s}
+.timecard{position:relative;background:var(--sheet);color:var(--ink);box-shadow:var(--shadow-paper);padding:20px 22px 16px}
+.timecard::before{content:"";position:absolute;top:-1px;right:-1px;width:31px;height:31px;background:var(--mat);clip-path:polygon(0 0,100% 0,100% 100%)}
+.tc-titlebar{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--mat);padding-bottom:8px;padding-right:22px}
+.tc-title{font-stretch:72%;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mat);font-size:1.5rem;line-height:1}
+.serial{font-size:.75rem;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.fields{display:grid;grid-template-columns:1fr 1fr 1.25fr;margin:0;border-bottom:1px solid var(--rule)}
+.fields div{padding:7px 10px 8px 0}
+.fields div+div{border-left:1px solid var(--rule);padding-left:10px}
+.fields dt{font-size:.6875rem;font-stretch:75%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mat)}
+.fields dd{margin:1px 0 0;font-size:.875rem;font-weight:500;white-space:nowrap}
+.tc-running{display:flex;align-items:center;gap:10px;margin:12px 0 4px;padding:7px 7px 7px 12px;background:#EDF3EF;border-radius:4px;font-size:.8125rem;line-height:1.35;min-height:46px}
+.rec{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none}
+.tc-running .what{min-width:0}
+.tc-running .what b{font-weight:650}
+.tc-running .clock{margin-left:auto;font-size:1.125rem;color:var(--ink)}
+.icon-btn{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--rule-strong);background:#fff;color:var(--mat);cursor:pointer;flex:none;transition:background-color .2s,color .2s}
+.icon-btn:hover{background:var(--mat);color:#fff}
+.icon-btn .i{width:14px;height:14px}
+.tc-table{width:100%;border-collapse:collapse;font-size:.8125rem;line-height:1.25}
+.tc-table th{font-size:.6875rem;font-stretch:75%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mat);text-align:left;padding:9px 5px 5px;border-bottom:1.5px solid var(--mat)}
+.tc-table td{padding:6px 5px;height:44px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.tc-table .r{text-align:right}
+.tc-table td.day{font-size:.6875rem;font-stretch:78%;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mat);width:36px}
+.tc-table td.stamp{font-size:.9375rem;width:50px;white-space:nowrap}
+.tc-table td.stamp .late{color:var(--red)}
+.tc-table td.task{width:100%;max-width:0}
+.task b,.task span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task b{font-weight:650}
+.task span{color:var(--ink-2)}
+.tc-table td.hrs{font-weight:600;width:40px}
+.out-m{display:none}
+td.tick{width:24px;padding-left:0}
+.box{display:inline-grid;place-items:center;width:16px;height:16px;border:1.5px solid var(--rule-strong);border-radius:2px}
+.box .i{width:13px;height:13px;stroke-width:3;color:var(--mat);opacity:0;transform:scale(.3) rotate(-14deg);transition:opacity .2s,transform .5s var(--ease);transition-delay:calc(var(--i) * 65ms)}
+.now{font-family:var(--f);font-size:.6875rem;font-stretch:75%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.tc-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:14px}
+.tc-total{display:flex;align-items:baseline;gap:10px;font-size:.8125rem;color:var(--ink-2)}
+.tc-total strong{font-size:1.375rem;color:var(--ink);font-weight:700;font-stretch:90%}
+[data-state=open] .closed-only,[data-state=closed] .open-only{display:none}
+[data-state=closed] .box .i{opacity:1;transform:none}
+[data-state=closed] .tc-wrap{transform:rotate(-1.9deg) translateX(-8px)}
+
+.inv-copy{position:absolute;left:calc(62% - 44px);top:176px;width:calc(38% + 44px);z-index:1;background:var(--pink);color:var(--ink);border-radius:var(--r-sheet);box-shadow:var(--shadow-paper);padding:18px 20px 20px 72px;
+  --tuck:translateX(-68%) rotate(-1.4deg); --final:translateX(0) rotate(1.8deg); transform:var(--tuck)}
+.inv-copy::before{content:"";position:absolute;left:44px;top:0;bottom:0;border-left:2px dotted var(--line-pink)}
+.inv-copy::after{content:"";position:absolute;left:52px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--mat);box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+[data-state=open] .inv-copy{visibility:hidden}
+[data-state=closed] .inv-copy{visibility:visible;transform:var(--final);animation:pull 1.15s var(--ease) .5s both}
+@keyframes pull{
+  0%{transform:var(--tuck);box-shadow:var(--shadow-paper)}
+  45%{box-shadow:var(--shadow-lift)}
+  100%{transform:var(--final);box-shadow:var(--shadow-paper)}
+}
+.inv-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.inv-head .form-label{color:var(--ink-pink)}
+.inv-copy .serial,.invoice .serial{color:var(--red-on-pink)}
+.inv-title{font-size:1.375rem;font-stretch:82%;font-weight:800;line-height:1.1;margin-top:4px}
+.inv-list{list-style:none;margin:14px 0 0;padding:0;border-top:1.5px solid var(--ink-pink)}
+.inv-list li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-pink);font-size:.875rem}
+.inv-list .c{font-weight:650;line-height:1.25}
+.inv-list small{display:block;font-weight:400;font-size:.75rem;color:var(--ink-pink);font-variant-numeric:tabular-nums}
+.inv-list .amt{font-weight:600}
+.inv-total{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0 16px;font-size:.8125rem;color:var(--ink-pink)}
+.inv-total strong{font-size:1.375rem;font-weight:800;font-stretch:88%;color:var(--ink)}
+
+/* ---------- how it works ---------- */
+.how-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(40px,6vw,96px);align-items:start}
+.section-head h2{font-size:clamp(2rem,3.6vw,3.4rem);font-stretch:85%;font-weight:800;line-height:1;letter-spacing:-.015em}
+.section-head p{margin-top:20px;color:var(--ink-2);max-width:52ch;font-size:1.125rem;line-height:1.55}
+.stack{position:sticky;top:48px;height:560px;margin-top:8px}
+.copy{position:absolute;width:82%;border-radius:var(--r-sheet);box-shadow:var(--shadow-desk);padding:18px 22px 22px;margin:0}
+.copy:nth-child(1){top:0;left:0;background-color:var(--sheet);z-index:1;transform:rotate(-.6deg)}
+.copy:nth-child(2){top:170px;left:9%;background-color:var(--canary);z-index:2;transform:rotate(.5deg)}
+.copy:nth-child(3){top:340px;left:18%;background-color:var(--pink);z-index:3;transform:rotate(-.3deg)}
+.copy-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:2px solid var(--mat);padding-bottom:8px}
+.copy-head h3{font-size:1.125rem;font-stretch:72%;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mat);line-height:1}
+.copy-head span{font-size:.8125rem;color:var(--ink-2)}
+.copy:nth-child(2) .copy-head span,.copy:nth-child(2) .entry p,.copy:nth-child(2) .after{color:var(--ink-canary)}
+.copy:nth-child(3) .copy-head span{color:var(--ink-pink)}
+.copy:nth-child(3) .copy-head h3{color:#5A1F2E}
+.copy:nth-child(3) .copy-head{border-color:#5A1F2E}
+.entry{display:grid;align-items:center;gap:14px;padding:14px 0 12px;border-bottom:1px solid var(--rule);font-size:.9375rem}
+.entry-sheet{grid-template-columns:40px 50px 50px 1fr auto}
+.entry-sheet .stamp{font-size:1.0625rem}
+.entry-sheet .d{font-size:.75rem;font-stretch:78%;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mat)}
+.entry-report{grid-template-columns:1fr auto}
+.entry-report p{color:var(--ink-2);font-size:.875rem;margin-top:2px}
+.entry-invoice{grid-template-columns:1fr auto auto;border-color:var(--line-pink)}
+.entry-invoice .muted{color:var(--ink-pink)}
+.entry b{font-weight:650}
+.entry .h{font-weight:700;font-variant-numeric:tabular-nums}
+.copy .after{padding-top:10px;font-size:.8125rem;color:var(--ink-2)}
+.copy:nth-child(3) .after{color:var(--ink-pink)}
+.week{list-style:none;margin:40px 0 0;padding:0;border-top:1.5px solid var(--mat)}
+.week li{display:grid;grid-template-columns:118px 1fr;gap:20px;padding:22px 0 24px;border-bottom:1px solid var(--rule)}
+.week .when{display:flex;flex-direction:column;gap:2px}
+.week .when span{font-size:.75rem;font-stretch:78%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mat)}
+.week .when .stamp{font-size:1.625rem;line-height:1;color:var(--ink)}
+.week .when .stamp.late{color:var(--red)}
+.week h3{font-size:1.1875rem;font-stretch:92%;font-weight:700;line-height:1.25}
+.week p{margin-top:6px;color:var(--ink-2);font-size:1rem;line-height:1.55;max-width:44ch}
+
+/* ---------- reports ---------- */
+.reports-head{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:clamp(32px,6vw,96px);align-items:end}
+.reports-head .section-head p{margin-top:0}
+.plain-list{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:10px}
+.plain-list li{display:flex;gap:12px;align-items:flex-start;font-size:1rem;color:var(--ink)}
+.plain-list .i{width:18px;height:18px;color:var(--mat);margin-top:3px;stroke-width:2.2}
+.report{margin-top:56px;background:var(--canary);border-radius:var(--r-sheet);box-shadow:var(--shadow-desk);padding:40px}
+.report-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:20px;border-bottom:2px solid var(--mat);padding-bottom:16px}
+.report-top h3{font-size:clamp(1.6rem,2.6vw,2.25rem);font-stretch:84%;font-weight:800;line-height:1;margin-top:6px}
+.report-top .meta{font-size:.9375rem;color:var(--ink-canary);margin-top:6px}
+.seg{display:inline-flex;padding:3px;border-radius:8px;background:rgba(21,32,26,.08);gap:2px}
+.seg button{font:inherit;font-size:.875rem;font-weight:600;border:0;background:transparent;color:var(--ink-canary);padding:8px 14px;border-radius:6px;cursor:pointer;transition:background-color .2s,color .2s,box-shadow .2s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed=true]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(21,32,26,.2)}
+.report-body{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(28px,4vw,56px);padding-top:24px}
+.fig-label{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.total-line{font-size:2.25rem;font-stretch:84%;font-weight:800;line-height:1;margin-top:6px;font-variant-numeric:tabular-nums}
+.total-line small{font-size:.9375rem;font-weight:500;font-stretch:100%;color:var(--ink-canary);margin-left:6px}
+.bars{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end;height:196px;margin-top:18px;border-bottom:1.5px solid var(--ink)}
+.bar{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bar i{display:block;width:min(34px,70%);height:var(--h);background:var(--mat);border-radius:4px 4px 0 0;transition:background-color .2s}
+.bar em{font-style:normal;font-size:.8125rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;margin-bottom:8px}
+.bar em.zero{color:var(--ink-canary);font-weight:500}
+.bar:hover i{background:var(--ink)}
+.bar::after{content:attr(data-tip);position:absolute;bottom:calc(var(--h) + 30px);left:50%;transform:translate(-50%,4px);background:var(--ink);color:#fff;font-size:.75rem;font-weight:600;padding:5px 8px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .2s var(--ease)}
+.bar:hover::after{opacity:1;transform:translate(-50%,0)}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:8px;text-align:center;font-size:.6875rem;font-stretch:78%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mat)}
+.meter{margin-top:28px}
+.meter-track{height:10px;background:rgba(29,91,68,.2);border-radius:2px;margin-top:8px;overflow:hidden}
+.meter-track span{display:block;height:100%;width:68.6%;background:var(--mat)}
+.meter p{font-size:.875rem;color:var(--ink-canary);margin-top:8px;font-variant-numeric:tabular-nums}
+.tasks{list-style:none;margin:10px 0 0;padding:0;border-top:1.5px solid var(--mat)}
+.tasks li{display:grid;grid-template-columns:1fr auto;gap:6px 24px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.tasks h4{margin:0;font-size:1.0625rem;font-weight:700;font-stretch:94%}
+.tasks p{grid-column:1;color:var(--ink-canary);font-size:.9375rem;line-height:1.5;max-width:56ch}
+.tasks .h{grid-column:2;grid-row:1;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tasks li.internal{display:none}
+.report[data-view=studio] .tasks li.internal{display:grid}
+.tag{display:inline-block;margin-left:8px;font-size:.6875rem;font-stretch:78%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:rgba(21,32,26,.1);padding:3px 6px;border-radius:3px;vertical-align:2px}
+.studio-only{display:none}
+.report[data-view=studio] .studio-only{display:inline}
+.report[data-view=studio] .client-only{display:none}
+.next{margin-top:18px;font-size:.9375rem;color:var(--ink-canary)}
+.next b{color:var(--ink);font-weight:650}
+.report-foot{display:flex;flex-wrap:wrap;gap:6px 28px;margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-size:.875rem;color:var(--ink-canary)}
+.report-foot b{color:var(--ink);font-weight:600}
+
+/* ---------- invoices ---------- */
+.inv-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(40px,6vw,96px);align-items:center}
+.invoices .section-head h2{color:var(--on-mat)}
+.invoices .section-head p{color:var(--on-mat-2)}
+.rounding{border:0;margin:32px 0 0;padding:0}
+.rounding legend{font-size:.9375rem;font-weight:600;color:var(--on-mat);padding:0;margin-bottom:10px}
+.rounding .opts{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:rgba(0,0,0,.2);border-radius:8px}
+.rounding label{position:relative;cursor:pointer}
+.rounding input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.rounding label span{display:block;padding:9px 14px;border-radius:6px;font-size:.9375rem;font-weight:600;color:var(--on-mat-2);transition:background-color .2s,color .2s}
+.rounding label:hover span{color:var(--on-mat)}
+.rounding input:checked+span{background:var(--canary);color:var(--ink)}
+.rounding input:focus-visible+span{outline:3px solid var(--canary);outline-offset:2px}
+.mat-list{list-style:none;margin:32px 0 0;padding:0;border-top:1px solid rgba(206,232,216,.3)}
+.mat-list li{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(206,232,216,.3);color:var(--on-mat-2);font-size:1rem;line-height:1.5}
+.mat-list .i{color:var(--canary);width:18px;height:18px;margin-top:3px;stroke-width:2.2}
+.invoice{background:var(--pink);color:var(--ink);border-radius:var(--r-sheet);box-shadow:var(--shadow-paper);padding:40px;transform:rotate(.8deg)}
+.invoice-top{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;border-bottom:2px solid #5A1F2E;padding-bottom:16px}
+.invoice-top h3{font-size:clamp(1.8rem,3vw,2.6rem);font-stretch:80%;font-weight:800;line-height:.95;text-transform:uppercase;letter-spacing:.01em;color:#5A1F2E}
+.invoice-top .serial{font-size:.875rem;margin-top:8px;display:block}
+.invoice-top dl{margin:0;display:grid;grid-template-columns:auto auto;gap:4px 16px;font-size:.875rem;text-align:right}
+.invoice-top dt{color:var(--ink-pink)}
+.invoice-top dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px 0;font-size:.9375rem;line-height:1.45}
+.parties .form-label{color:var(--ink-pink);display:block;margin-bottom:3px}
+.lines{width:100%;border-collapse:collapse;font-size:.9375rem;font-variant-numeric:tabular-nums}
+.lines th{font-size:.6875rem;font-stretch:75%;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-pink);text-align:left;padding:8px 8px 6px 0;border-bottom:1.5px solid var(--ink-pink)}
+.lines td{padding:12px 8px 12px 0;border-bottom:1px solid var(--line-pink)}
+.lines .r{text-align:right;padding-right:0}
+.lines td.r{padding-left:12px}
+.lines .date{color:var(--ink-pink);white-space:nowrap}
+.lines .val{transition:background-color .6s}
+.lines .val.flash{background:rgba(255,255,255,.55)}
+.inv-sum{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-top:16px}
+.inv-sum .rule-note{font-size:.875rem;color:var(--ink-pink)}
+.inv-sum strong{font-size:clamp(1.8rem,3vw,2.4rem);font-stretch:86%;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.inv-sum .due{display:block;text-align:right;font-size:.8125rem;color:var(--ink-pink);margin-bottom:4px}
+
+/* ---------- pricing ---------- */
+.price-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(40px,6vw,96px);align-items:start}
+.ratecard{background:var(--sheet);border-radius:var(--r-sheet);box-shadow:var(--shadow-desk);padding:36px}
+.rates{width:100%;border-collapse:collapse;font-size:.9375rem}
+.rates thead th{vertical-align:bottom;text-align:left;padding:0 12px 16px;border-bottom:2px solid var(--mat);font-weight:400}
+.rates thead th:first-child{padding-left:0}
+.plan-name{font-size:1rem;font-stretch:72%;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mat)}
+.plan-size{display:block;font-size:.875rem;color:var(--ink-2);margin-top:2px}
+.price{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.price b{font-size:clamp(2.4rem,4vw,3.5rem);font-stretch:82%;font-weight:800;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.price span{font-size:.8125rem;color:var(--ink-2);line-height:1.25}
+.rates tbody th{text-align:left;font-weight:500;padding:13px 12px 13px 0;border-bottom:1px solid var(--rule)}
+.rates tbody td{padding:13px 12px;border-bottom:1px solid var(--rule);width:27%}
+.rates tbody .i{width:18px;height:18px;color:var(--mat);stroke-width:2.4}
+.rates tbody .no .i{color:#8A958F;stroke-width:2}
+.rates tfoot td{padding:20px 12px 0}
+.rates tfoot td .btn{width:100%}
+.price-note{margin-top:20px;font-size:.9375rem;color:var(--ink-2)}
+
+/* ---------- faq ---------- */
+.faq-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(40px,6vw,96px);align-items:start}
+.qa details{border-bottom:1px solid var(--rule)}
+.qa details:first-child{border-top:1.5px solid var(--mat)}
+.qa summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:24px;padding:22px 0;cursor:pointer;font-size:1.1875rem;font-stretch:94%;font-weight:650;line-height:1.35}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary:hover{color:var(--mat)}
+.qa summary .i{width:22px;height:22px;color:var(--mat);transition:transform .3s var(--ease)}
+.qa details[open] summary .i{transform:rotate(180deg)}
+.qa details p{padding:0 48px 24px 0;color:var(--ink-2);max-width:64ch;line-height:1.6}
+
+/* ---------- closing ---------- */
+.closing h2{font-size:clamp(2.6rem,6vw,5.5rem);font-stretch:82%;font-weight:800;line-height:.94;letter-spacing:-.02em;max-width:12ch}
+.closing-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(40px,6vw,96px);align-items:end}
+.closing p.sub{color:var(--on-mat-2);font-size:1.125rem;line-height:1.55;max-width:40ch;margin-bottom:28px}
+.trial label{display:block;font-size:.9375rem;font-weight:600;margin-bottom:8px}
+.field-row{display:flex;gap:10px}
+.trial input{flex:1;min-width:0;font:inherit;font-size:1rem;padding:15px 16px;border-radius:var(--r-control);border:1.5px solid transparent;background:var(--sheet);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+.trial input::placeholder{color:var(--ink-2)}
+.trial input:hover{box-shadow:0 0 0 4px rgba(246,216,78,.25)}
+.trial input:focus-visible{outline:3px solid var(--canary);outline-offset:2px}
+.trial input[aria-invalid=true]{border-color:#F29A86;box-shadow:0 0 0 4px rgba(242,154,134,.3)}
+.form-msg{min-height:1.6em;margin-top:12px;font-size:.9375rem;color:var(--on-mat-2)}
+.form-msg.err{color:#FFD2C8}
+.form-msg.ok{color:var(--on-mat)}
+
+/* ---------- footer ---------- */
+.foot{background:var(--mat-deep);color:var(--on-mat-2);padding-block:36px;font-size:.9375rem}
+.foot .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:16px 32px}
+.foot .brand{font-size:1.125rem}
+.foot .brand svg{width:17px;height:22px}
+.foot .demo{color:var(--on-mat);font-weight:600}
+.foot nav{margin-left:auto;display:flex;gap:24px}
+.foot nav a{text-decoration:none}
+.foot nav a:hover{color:var(--on-mat);text-decoration:underline}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px) and (min-width:961px){
+  .desk{zoom:.86;width:100%;margin-right:0}
+}
+@media (max-width:1060px) and (min-width:961px){
+  .desk{zoom:.76}
+}
+@media (max-width:960px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-copy{max-width:720px}
+  .desk{margin:32px auto 0;width:100%;max-width:730px}
+}
+@media (max-width:1100px){
+  :root{--gutter:40px}
+  .section{padding:96px 40px}
+  .how-grid,.inv-grid,.price-grid,.faq-grid,.reports-head,.closing-grid{grid-template-columns:1fr}
+  .how-text{order:-1}
+  .stack{max-width:680px;position:relative;top:auto}
+  .invoice{max-width:720px}
+}
+@media (max-width:900px){
+  .nav-links,.nav-signin{display:none}
+  .nav-actions{margin-left:auto}
+  .report-body{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  :root{--gutter:16px}
+  .section{padding:72px 16px}
+  body{font-size:1rem}
+  .hero{padding-bottom:64px}
+  .hero-grid{padding-top:20px}
+  .nav{padding-block:14px}
+  .brand{font-size:1.2rem}
+  .lead{margin:20px 0 26px}
+  .cta-row .btn{flex:1 1 auto}
+  .desk{height:auto;display:flex;flex-direction:column}
+  .tc-wrap{position:relative;width:100%;transform:rotate(-.8deg)}
+  [data-state=closed] .tc-wrap{transform:rotate(-1.1deg)}
+  .timecard{padding:16px 14px 14px}
+  .fields{grid-template-columns:1fr 1fr}
+  .fields div:nth-child(3){display:none}
+  .tc-table td.out{display:none}
+  .tc-table th.out{display:none}
+  .out-m{display:block;margin-top:3px}
+  .tc-table td.stamp{width:46px}
+  .inv-copy{position:relative;left:auto;top:auto;width:90%;margin:-34px 0 0 auto;padding:44px 18px 18px;
+    --tuck:translateY(-72%) rotate(-.8deg); --final:translateY(0) rotate(1.2deg)}
+  .inv-copy::before{left:0;right:0;top:28px;bottom:auto;border-left:0;border-top:2px dotted var(--line-pink)}
+  .inv-copy::after{left:auto;right:16px;top:9px}
+  .stack{height:auto;display:grid}
+  .copy{position:relative;width:auto;top:auto!important;left:auto!important;padding:16px 16px 18px}
+  .copy+.copy{margin-top:-14px}
+  .copy:nth-child(2){margin-left:10px}
+  .copy:nth-child(3){margin-left:20px}
+  .entry-sheet{grid-template-columns:34px 44px 44px 1fr auto;gap:8px;font-size:.875rem}
+  .entry-sheet .stamp{font-size:.9375rem}
+  .entry-invoice{grid-template-columns:1fr auto;gap:2px 12px}
+  .entry-invoice b{grid-column:1/-1}
+  .week li{grid-template-columns:1fr;gap:8px}
+  .week .when{flex-direction:row;align-items:baseline;gap:10px}
+  .invoice{transform:none;padding:20px 16px}
+  .report{padding:20px}
+  .ratecard{padding:16px 14px}
+  .invoice-top{grid-template-columns:1fr}
+  .invoice-top dl{text-align:left}
+  .parties{grid-template-columns:1fr 1fr;font-size:.875rem}
+  .lines{font-size:.8125rem}
+  .lines .rate{display:none}
+  .rates{font-size:.875rem}
+  .rates thead th,.rates tbody td,.rates tfoot td{padding-inline:6px}
+  .rates tbody th{padding-right:8px}
+  .rates tbody td{width:26%}
+  .plan-size{font-size:.8125rem}
+  .price{flex-direction:column;align-items:flex-start;gap:4px}
+  .price br{display:none}
+  .price b{font-size:2.2rem}
+  .rates tfoot .btn{padding:12px 8px;font-size:.8125rem}
+  .field-row{flex-direction:column}
+  .qa summary{font-size:1.0625rem}
+  .qa details p{padding-right:0}
+  .foot nav{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="mark" viewBox="0 0 21 27"><path fill="#F6D84E" fill-rule="evenodd" d="M0 0h14l7 7v20H0zM6.5 4.2a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2z"/><path d="M3.5 13h14M3.5 17h14M3.5 21h9" stroke="#1D5B44" stroke-width="1.6" fill="none"/></symbol>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hero mat" id="top">
+  <div class="ruler" aria-hidden="true"></div>
+  <nav class="nav wrap" aria-label="Main">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg><span>Hourcard</span></a>
+    <ul class="nav-links">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#reports">Reports</a></li>
+      <li><a href="#invoices">Invoices</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a class="nav-signin" href="#start">Sign in</a>
+      <a class="btn btn-canary btn-sm" href="#start">Start free trial</a>
+    </div>
+  </nav>
+
+  <div class="hero-grid wrap">
+    <div class="hero-copy">
+      <h1><span>Track Monday.</span> <span class="friday">Bill Friday.</span></h1>
+      <p class="lead">Time tracking for studios of 2 to 50 people. Every timer already knows its client and rate, so the week's scattered entries turn into a client report and a ready invoice. No Friday timesheet chase.</p>
+      <div class="cta-row">
+        <a class="btn btn-canary" href="#start">Start free trial <svg class="i i-go" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <button class="btn btn-line" id="replay" type="button" aria-controls="desk"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg> Watch a week close</button>
+      </div>
+      <p class="fine">14 days free, no card needed. Plans from $9 per person a month.</p>
+    </div>
+
+    <div class="desk" id="desk" data-state="open">
+      <div class="tc-wrap">
+        <article class="timecard" aria-labelledby="tc-title">
+          <div class="tc-titlebar">
+            <h2 class="tc-title" id="tc-title">Time card</h2>
+            <span class="serial">No. 2639</span>
+          </div>
+          <dl class="fields">
+            <div><dt>Name</dt><dd>Ana Ferro</dd></div>
+            <div><dt>Studio</dt><dd>Ferro Studio</dd></div>
+            <div><dt>Week</dt><dd class="num">39, Sep 21 to 25</dd></div>
+          </dl>
+          <div class="tc-running" aria-live="polite">
+            <span class="rec open-only" aria-hidden="true"></span>
+            <span class="what open-only"><b>Pell &amp; Marsh</b>, moodboards</span>
+            <span class="stamp clock open-only" id="live" aria-label="Timer running">02:31:07</span>
+            <button class="icon-btn open-only" type="button" id="stopTimer" aria-label="Stop the timer and close the week"><svg class="i" aria-hidden="true"><use href="#i-square"/></svg></button>
+            <span class="what closed-only">Timer stopped at 15:45 and added to Friday. Week closed.</span>
+          </div>
+          <table class="tc-table">
+            <thead><tr><th scope="col"><span class="sr">Billed</span></th><th scope="col">Day</th><th scope="col">In</th><th scope="col" class="out">Out</th><th scope="col">Client, task</th><th scope="col" class="r">Hrs</th></tr></thead>
+            <tbody>
+              <tr style="--i:0"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Mon</td><td class="stamp">09:12<span class="out-m">10:47</span></td><td class="stamp out">10:47</td><td class="task"><b>Northwind Ferries</b><span>Homepage wireframes</span></td><td class="r hrs num">1:35</td></tr>
+              <tr style="--i:1"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Mon</td><td class="stamp">11:03<span class="out-m">11:21</span></td><td class="stamp out">11:21</td><td class="task"><b>Oda Bakery</b><span>Menu price edits</span></td><td class="r hrs num">0:18</td></tr>
+              <tr style="--i:2"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Tue</td><td class="stamp">09:40<span class="out-m">10:05</span></td><td class="stamp out">10:05</td><td class="task"><b>Pell &amp; Marsh</b><span>Kickoff call</span></td><td class="r hrs num">0:25</td></tr>
+              <tr style="--i:3"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Tue</td><td class="stamp">10:15<span class="out-m">13:00</span></td><td class="stamp out">13:00</td><td class="task"><b>Pell &amp; Marsh</b><span>Brand audit</span></td><td class="r hrs num">2:45</td></tr>
+              <tr style="--i:4"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Wed</td><td class="stamp">13:20<span class="out-m late">18:02</span></td><td class="stamp out"><span class="late" title="After 6 pm">18:02</span></td><td class="task"><b>Northwind Ferries</b><span>Booking flow</span></td><td class="r hrs num">4:42</td></tr>
+              <tr style="--i:5"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Thu</td><td class="stamp">08:55<span class="out-m">09:10</span></td><td class="stamp out">09:10</td><td class="task"><b>Oda Bakery</b><span>Photo selects</span></td><td class="r hrs num">0:15</td></tr>
+              <tr style="--i:6"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Thu</td><td class="stamp">14:00<span class="out-m">17:36</span></td><td class="stamp out">17:36</td><td class="task"><b>Northwind Ferries</b><span>Booking flow</span></td><td class="r hrs num">3:36</td></tr>
+              <tr style="--i:7"><td class="tick"><span class="box"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span></td><td class="day">Fri</td><td class="stamp">13:05<span class="out-m"><span class="now open-only">Now</span><span class="closed-only">15:45</span></span></td><td class="stamp out"><span class="now open-only">Now</span><span class="closed-only">15:45</span></td><td class="task"><b>Pell &amp; Marsh</b><span>Moodboards</span></td><td class="r hrs num"><span class="open-only" id="liveHrs">2:31</span><span class="closed-only">2:40</span></td></tr>
+            </tbody>
+          </table>
+          <div class="tc-foot">
+            <p class="tc-total"><span class="open-only">Tracked so far</span><span class="closed-only">Billed to 3 clients</span> <strong class="num"><span class="open-only">13:36</span><span class="closed-only">16:16</span></strong></p>
+            <button class="btn btn-mat btn-sm" id="closeWeek" type="button"><span class="open-only">Close week</span><span class="closed-only">Reopen week</span></button>
+          </div>
+        </article>
+      </div>
+
+      <aside class="inv-copy" aria-label="Invoices drafted from week 39">
+        <div class="inv-head"><span class="form-label">Invoices drafted</span><span class="serial">HC-0412 to 0414</span></div>
+        <h3 class="inv-title">Week 39, ready to send</h3>
+        <ul class="inv-list">
+          <li><span class="c">Northwind Ferries<small>9:53 at $120</small></span><span class="amt num" data-amt="1186">$1,186.00</span></li>
+          <li><span class="c">Pell &amp; Marsh<small>5:50 at $140</small></span><span class="amt num" data-amt="816.67">$816.67</span></li>
+          <li><span class="c">Oda Bakery<small>0:33 at $95</small></span><span class="amt num" data-amt="52.25">$52.25</span></li>
+        </ul>
+        <p class="inv-total"><span>3 invoices</span><strong class="amt num" data-amt="2054.92">$2,054.92</strong></p>
+        <a class="btn btn-ink btn-sm" href="#invoices">Review and send <svg class="i" aria-hidden="true"><use href="#i-send"/></svg></a>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section how" id="how" aria-labelledby="how-title">
+    <div class="wrap how-grid">
+      <div class="stack" role="group" aria-label="One entry, shown on the timesheet, the client report and the invoice">
+        <figure class="copy">
+          <div class="copy-head"><h3>Timesheet</h3><span>Original, stays with the studio</span></div>
+          <div class="entry entry-sheet"><span class="d">Wed</span><span class="stamp">13:20</span><span class="stamp" style="color:var(--red)">18:02</span><span><b>Northwind Ferries</b>, booking flow</span><span class="h">4:42</span></div>
+          <p class="after">Tracked by Ana with one click. Client, project and rate came from the project.</p>
+        </figure>
+        <figure class="copy">
+          <div class="copy-head"><h3>Client report</h3><span>Canary copy, goes to Northwind</span></div>
+          <div class="entry entry-report"><div><b>Booking flow, Wednesday</b><p>Seat selection and payment steps, first full pass.</p></div><span class="h">4 h 42 min</span></div>
+          <p class="after">Same entry, in words the client uses. Internal notes stay out.</p>
+        </figure>
+        <figure class="copy">
+          <div class="copy-head"><h3>Invoice</h3><span>Pink copy, HC-0412</span></div>
+          <div class="entry entry-invoice"><b>Booking flow, Sep 23</b><span class="muted num">4:42 at $120.00 an hour</span><span class="h">$564.00</span></div>
+          <p class="after">Same entry, priced at the project rate. Nobody typed it twice.</p>
+        </figure>
+      </div>
+
+      <div class="how-text">
+        <div class="section-head">
+          <h2 id="how-title">Write it once. Every copy fills itself in.</h2>
+          <p>Hourcard works like the duplicate books studios used to bill from. One entry on the timesheet shows up on the client's report and on the invoice, with the same hours, so there is nothing to reconcile.</p>
+        </div>
+        <ol class="week">
+          <li><div class="when"><span>Monday</span><span class="stamp">09:12</span></div><div><h3>Start a timer from anywhere</h3><p>Menu bar, browser tab or phone. Pick the project once; the client and the rate come with it.</p></div></li>
+          <li><div class="when"><span>Wednesday</span><span class="stamp late">18:02</span></div><div><h3>Late days stay honest</h3><p>Walk away with a timer running and Hourcard asks what to keep when you are back, instead of billing your dinner.</p></div></li>
+          <li><div class="when"><span>Friday</span><span class="stamp">16:00</span></div><div><h3>Reports draft themselves</h3><p>One report per client, grouped by task, in plain language, with internal work left out.</p></div></li>
+          <li><div class="when"><span>Friday</span><span class="stamp">16:05</span></div><div><h3>Approve, and the invoice goes</h3><p>The invoice carries the same numbers as the report. You read it once and send it.</p></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reports" id="reports" aria-labelledby="reports-title">
+    <div class="wrap">
+      <div class="reports-head">
+        <div class="section-head"><h2 id="reports-title">A report your client can read without a call.</h2></div>
+        <div class="section-head">
+          <p>Every Friday at four, Hourcard drafts a report for each client from the week's entries. It uses the task names your client knows, groups repeated work and shows how much of the retainer is left. You fix a sentence if you want, then approve.</p>
+          <ul class="plain-list">
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Written from task names, not timer codes</li>
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Internal time stays in the studio view</li>
+            <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Retainer balance on every report</li>
+          </ul>
+        </div>
+      </div>
+
+      <article class="report" id="report" data-view="client" aria-label="Example weekly report for Northwind Ferries">
+        <div class="report-top">
+          <div>
+            <span class="form-label">Weekly report</span>
+            <h3>Northwind Ferries</h3>
+            <p class="meta">Sep 21 to 25, 2026. Prepared by Ferro Studio.</p>
+          </div>
+          <div class="seg" role="group" aria-label="Report view">
+            <button type="button" aria-pressed="true" data-view="client">Client view</button>
+            <button type="button" aria-pressed="false" data-view="studio">Studio view</button>
+          </div>
+        </div>
+        <div class="report-body">
+          <div>
+            <div class="fig-label"><span class="form-label">Billable this week</span><span class="form-label studio-only">Plus 0:40 internal</span></div>
+            <p class="total-line">9 h 53 min<small>across 3 days</small></p>
+            <figure style="margin:0" role="img" aria-label="Hours per day: Monday 1 hour 35 minutes, Tuesday none, Wednesday 4 hours 42 minutes, Thursday 3 hours 36 minutes, Friday none.">
+              <div class="bars" aria-hidden="true">
+                <div class="bar" style="--h:47px" data-tip="Mon, homepage wireframes"><em>1:35</em><i></i></div>
+                <div class="bar" style="--h:0px" data-tip="Tue, no work logged"><em class="zero">0:00</em><i></i></div>
+                <div class="bar" style="--h:140px" data-tip="Wed, booking flow"><em>4:42</em><i></i></div>
+                <div class="bar" style="--h:107px" data-tip="Thu, booking flow"><em>3:36</em><i></i></div>
+                <div class="bar" style="--h:0px" data-tip="Fri, no work logged"><em class="zero">0:00</em><i></i></div>
+              </div>
+              <div class="days" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+            </figure>
+            <div class="meter">
+              <span class="form-label">September retainer</span>
+              <div class="meter-track" role="img" aria-label="41 hours 10 minutes used of 60 hours"><span></span></div>
+              <p>41:10 used of 60:00. 18:50 left for the last week of September.</p>
+            </div>
+          </div>
+          <div>
+            <span class="form-label">What we worked on</span>
+            <ul class="tasks">
+              <li><h4>Homepage wireframes</h4><span class="h">1 h 35 min</span><p>Second round after Monday's feedback. Navigation cut to four items and the timetable moved above the fold.</p></li>
+              <li><h4>Booking flow</h4><span class="h">8 h 18 min</span><p>Seat selection and payment steps, first full pass. Ready for your review on Monday.</p></li>
+              <li class="internal"><h4>Team review <span class="tag">Internal</span></h4><span class="h">0 h 40 min</span><p>Not billed and never shown to the client. Switch back to the client view to see what Northwind receives.</p></li>
+            </ul>
+            <p class="next"><b>Next week:</b> a usability test of the booking flow with five passengers, then round two.</p>
+          </div>
+        </div>
+        <div class="report-foot"><span>Approved by <b>Ana Ferro</b>, Fri 16:02</span><span>Sent to <b>Tom Reyes</b>, Fri 16:05</span><span class="client-only">Showing the client view</span><span class="studio-only">Showing the studio view</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section invoices mat" id="invoices" aria-labelledby="inv-title">
+    <div class="wrap inv-grid">
+      <div>
+        <div class="section-head">
+          <h2 id="inv-title">The invoice is the week, already added up.</h2>
+          <p>Rates live on the project, per person or per role. When the report is approved, each line becomes an invoice line with the hours your team actually tracked.</p>
+        </div>
+        <fieldset class="rounding">
+          <legend>Rounding on this invoice</legend>
+          <div class="opts">
+            <label><input type="radio" name="round" value="0" checked><span>Exact minutes</span></label>
+            <label><input type="radio" name="round" value="6"><span>Up to 6 min</span></label>
+            <label><input type="radio" name="round" value="15"><span>Up to 15 min</span></label>
+          </div>
+        </fieldset>
+        <ul class="mat-list">
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Your client sees the rounding rule printed on the invoice.</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Send it as a PDF with a payment link, or export CSV for your accountant.</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Change a rate and every unbilled entry on that project follows.</li>
+        </ul>
+      </div>
+
+      <article class="invoice" aria-label="Example invoice HC-0412">
+        <div class="invoice-top">
+          <div><h3>Invoice</h3><span class="serial">HC-0412</span></div>
+          <dl><dt>Issued</dt><dd>Sep 25, 2026</dd><dt>Due</dt><dd>Oct 9, 2026</dd><dt>Period</dt><dd>Sep 21 to 25</dd></dl>
+        </div>
+        <div class="parties">
+          <div><span class="form-label">From</span>Ferro Studio<br>Ana Ferro</div>
+          <div><span class="form-label">Bill to</span>Northwind Ferries<br>Attn. Tom Reyes</div>
+        </div>
+        <table class="lines">
+          <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col" class="r">Hours</th><th scope="col" class="r rate">Rate</th><th scope="col" class="r">Amount</th></tr></thead>
+          <tbody>
+            <tr><td class="date">Sep 21</td><td>Homepage wireframes</td><td class="r val" data-row="0" data-k="h">1:35</td><td class="r rate">$120.00</td><td class="r val" data-row="0" data-k="a">$190.00</td></tr>
+            <tr><td class="date">Sep 23</td><td>Booking flow</td><td class="r val" data-row="1" data-k="h">4:42</td><td class="r rate">$120.00</td><td class="r val" data-row="1" data-k="a">$564.00</td></tr>
+            <tr><td class="date">Sep 24</td><td>Booking flow</td><td class="r val" data-row="2" data-k="h">3:36</td><td class="r rate">$120.00</td><td class="r val" data-row="2" data-k="a">$432.00</td></tr>
+          </tbody>
+        </table>
+        <div class="inv-sum">
+          <span class="rule-note" id="ruleNote" aria-live="polite">Billed in exact minutes. 9:53 in total.</span>
+          <div><span class="due">Total due, USD</span><strong id="invTotal">$1,186.00</strong></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section pricing" id="pricing" aria-labelledby="price-title">
+    <div class="wrap price-grid">
+      <div class="section-head">
+        <h2 id="price-title">Priced per person, the way you bill.</h2>
+        <p>Pay for the people who track time. Clients who read reports and approve invoices are free, however many you have.</p>
+      </div>
+      <div>
+        <div class="ratecard">
+          <table class="rates">
+            <caption class="sr">Hourcard plans</caption>
+            <thead>
+              <tr>
+                <th scope="col"><span class="sr">What you get</span></th>
+                <th scope="col"><span class="plan-name">Studio</span><span class="plan-size">2 to 10 people</span><span class="price"><b>$9</b><span>per person <br>a month</span></span></th>
+                <th scope="col"><span class="plan-name">Agency</span><span class="plan-size">11 to 50 people</span><span class="price"><b>$14</b><span>per person <br>a month</span></span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">One-click timers on web, desktop and phone</th><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Weekly client reports</th><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Invoices from tracked hours</th><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Project rates and rounding rules</th><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Retainers and budget alerts</th><td class="no"><svg class="i" role="img" aria-label="Not included"><use href="#i-minus"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Second approver before invoices go out</th><td class="no"><svg class="i" role="img" aria-label="Not included"><use href="#i-minus"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+              <tr><th scope="row">Invoices in more than one currency</th><td class="no"><svg class="i" role="img" aria-label="Not included"><use href="#i-minus"/></svg></td><td><svg class="i" role="img" aria-label="Included"><use href="#i-check"/></svg></td></tr>
+            </tbody>
+            <tfoot>
+              <tr><td></td><td><a class="btn btn-mat" href="#start">Start free trial</a></td><td><a class="btn btn-mat" href="#start">Start free trial</a></td></tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="price-note">Every trial runs 14 days on the Agency plan. Paying yearly takes two months off.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap faq-grid">
+      <div class="section-head"><h2 id="faq-title">Questions studios ask before switching.</h2></div>
+      <div class="qa">
+        <details open><summary>What if someone forgets to start the timer?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>They add the entry by hand afterwards, or drag a block on the day view. Hand-written entries are marked, so you can always tell what was timed and what was typed.</p></details>
+        <details><summary>What happens when a timer runs all night?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>Hourcard notices when a computer goes idle and asks what to keep when the person is back. Any entry longer than ten hours is flagged for review before Friday's reports are drafted.</p></details>
+        <details><summary>Can clients see internal notes or non-billable time?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>No. Anything marked internal stays in the studio view. The client report and the invoice only show billable work, under the task names you choose.</p></details>
+        <details><summary>Do we have to send invoices through Hourcard?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>No. You can send reports only and export the hours as CSV to the invoicing tool you already use.</p></details>
+        <details><summary>Can we bring clients and rates over from a spreadsheet?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>Yes. Upload a CSV with client, project and rate columns. Hourcard shows a preview of every row before anything is imported.</p></details>
+        <details><summary>What happens when the trial ends?<svg class="i" aria-hidden="true"><use href="#i-chevron"/></svg></summary><p>You choose a plan, or the account becomes read-only. Nothing is deleted, and you can export everything at any time.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section closing mat" id="start" aria-labelledby="close-title">
+    <div class="wrap closing-grid">
+      <h2 id="close-title">Close this Friday before five.</h2>
+      <div>
+        <p class="sub">Bring your clients and rates over from a spreadsheet, invite the team and start the first timer today.</p>
+        <form class="trial" id="trial" novalidate>
+          <label for="email">Work email</label>
+          <div class="field-row">
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="ana@ferro.studio" aria-describedby="msg">
+            <button class="btn btn-canary" type="submit" id="submitBtn">Start free trial <svg class="i i-go" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+          <p class="form-msg" id="msg" role="status">14 days free, no card needed.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg><span>Hourcard</span></a>
+    <span class="demo">Portfolio demo. Fictional brand.</span>
+    <nav aria-label="Footer"><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const desk = document.getElementById('desk');
+  const money = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+  /* ruler numerals along the mat edge */
+  const ruler = document.querySelector('.ruler');
+  const drawRuler = () => {
+    const n = Math.ceil(innerWidth / 120);
+    ruler.innerHTML = Array.from({length: n}, (_, i) => `<span style="left:${i * 120}px">${i}</span>`).join('');
+  };
+  drawRuler(); addEventListener('resize', drawRuler);
+
+  /* live timer on the card */
+  const live = document.getElementById('live'), liveHrs = document.getElementById('liveHrs');
+  const START = 2 * 3600 + 31 * 60 + 7; let secs = START, tick = null;
+  const pad = v => String(v).padStart(2, '0');
+  const paint = () => {
+    const h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    live.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`; liveHrs.textContent = `${h}:${pad(m)}`;
+  };
+  const run = () => { clearInterval(tick); tick = setInterval(() => { secs++; paint(); }, 1000); };
+
+  /* the week closes */
+  const amts = [...desk.querySelectorAll('.amt')];
+  const countUp = () => {
+    if (reduce) { amts.forEach(el => el.textContent = money(+el.dataset.amt)); return; }
+    const t0 = performance.now(), dur = 800;
+    const step = t => {
+      const p = Math.min(1, (t - t0) / dur), e = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
+      amts.forEach(el => el.textContent = money(+el.dataset.amt * e));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  let timer1;
+  const closeWeek = () => {
+    if (desk.dataset.state === 'closed') return;
+    clearInterval(tick); desk.dataset.state = 'closed';
+    clearTimeout(timer1); timer1 = setTimeout(countUp, reduce ? 0 : 900);
+  };
+  const openWeek = () => {
+    clearTimeout(timer1); desk.dataset.state = 'open';
+    if (!reduce) amts.forEach(el => el.textContent = money(0));
+    secs = START; paint(); run();
+  };
+  document.getElementById('closeWeek').addEventListener('click', () => desk.dataset.state === 'closed' ? openWeek() : closeWeek());
+  document.getElementById('stopTimer').addEventListener('click', closeWeek);
+  document.getElementById('replay').addEventListener('click', () => {
+    openWeek(); setTimeout(closeWeek, reduce ? 0 : 700);
+    if (desk.getBoundingClientRect().top < 0) desk.scrollIntoView({block: 'center'});
+  });
+
+  paint();
+  if (reduce) { desk.dataset.state = 'closed'; countUp(); }
+  else {
+    amts.forEach(el => el.textContent = money(0)); run();
+    const io = new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) { io.disconnect(); setTimeout(closeWeek, 1100); }
+    }, {threshold: .35});
+    io.observe(desk);
+  }
+
+  /* report view toggle */
+  const report = document.getElementById('report');
+  report.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    report.dataset.view = b.dataset.view;
+    report.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  }));
+
+  /* invoice rounding */
+  const mins = [95, 282, 216], RATE = 120;
+  const hm = m => `${Math.floor(m / 60)}:${pad(m % 60)}`;
+  const note = {0: 'Billed in exact minutes.', 6: 'Each entry rounded up to the next 6 minutes.', 15: 'Each entry rounded up to the next 15 minutes.'};
+  document.querySelectorAll('input[name=round]').forEach(r => r.addEventListener('change', () => {
+    const q = +r.value; let total = 0, totalM = 0;
+    mins.forEach((m, i) => {
+      const b = q ? Math.ceil(m / q) * q : m, a = b / 60 * RATE; total += a; totalM += b;
+      const h = document.querySelector(`.val[data-row="${i}"][data-k=h]`), am = document.querySelector(`.val[data-row="${i}"][data-k=a]`);
+      const changed = h.textContent !== hm(b);
+      h.textContent = hm(b); am.textContent = money(a);
+      if (changed && !reduce) [h, am].forEach(el => { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 450); });
+    });
+    document.getElementById('invTotal').textContent = money(total);
+    document.getElementById('ruleNote').textContent = `${note[q]} ${hm(totalM)} in total.`;
+  }));
+
+  /* trial form states */
+  const form = document.getElementById('trial'), email = document.getElementById('email'), msg = document.getElementById('msg'), btn = document.getElementById('submitBtn');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = email.value.trim();
+    msg.className = 'form-msg';
+    if (!v) { email.setAttribute('aria-invalid', 'true'); msg.classList.add('err'); msg.textContent = 'Enter your work email to start the trial.'; email.focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { email.setAttribute('aria-invalid', 'true'); msg.classList.add('err'); msg.textContent = 'That address looks incomplete. Try the format ana@ferro.studio.'; email.focus(); return; }
+    email.removeAttribute('aria-invalid'); btn.disabled = true; btn.firstChild.textContent = 'Starting trial ';
+    setTimeout(() => { btn.disabled = false; btn.firstChild.textContent = 'Start free trial '; msg.classList.add('ok'); msg.textContent = `Demo only, so no account was made. In the real product, the trial link would go to ${v}.`; }, 700);
+  });
+  email.addEventListener('input', () => { if (email.hasAttribute('aria-invalid')) { email.removeAttribute('aria-invalid'); msg.className = 'form-msg'; msg.textContent = '14 days free, no card needed.'; } });
+})();
+</script>
+</body>
+</html>
