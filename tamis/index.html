@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tamis: observability setup for backend teams</title>
+<meta name="description" content="Tamis sets up structured logs, splits every error into expected and unexpected, and wires dashboards and alerts into the stack your backend team already runs. Portfolio demo, fictional brand.">
+<meta name="theme-color" content="#1F33A6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400&family=Red+Hat+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board:#1F33A6; --board-deep:#17278A; --board-rule:#4257C4;
+  --on-board:#FFFFFF; --on-board-2:#C9D1F5; --on-board-3:#A9B4EC;
+  --ground:#E9ECF2; --paper:#FFFFFF; --paper-2:#F4F5F9; --paper-press:#E4E8FA;
+  --ink:#0D1330; --ink-2:#454C66; --ink-3:#5C6380;
+  --rule:#CDD2DE; --rule-strong:#8D94AB; --grid:#E3E6EE;
+  --signal:#D4321A; --signal-ink:#B8261A; --signal-wash:#FDECE8; --signal-rule:#F4C4BA; --signal-on-board:#FF8F75;
+  --expected:#DDE1EB; --expected-ink:#2C3450; --pencil:#2A2F45;
+  --series-unx:#D4321A; --series-exp:#5B6CC8; --pct-50:#8D9BE0; --pct-95:#4F63CC; --pct-99:#1F33A6;
+
+  --f-text:"B612","Segoe UI",system-ui,sans-serif;
+  --f-data:"Red Hat Mono",ui-monospace,Menlo,monospace;
+  --t-display:clamp(2.75rem, 1.1rem + 4.6vw, 5.5rem);
+  --t-headline:clamp(2rem, 1.2rem + 2.4vw, 3.5rem);
+  --t-title:clamp(1.25rem, 1.05rem + 0.5vw, 1.5rem);
+  --t-callsign:1.125rem; --t-lede:1.1875rem; --t-body:1.0625rem; --t-ui:1rem; --t-small:.875rem; --t-figure:1.375rem;
+  --t-display-sm:clamp(2.25rem, 1rem + 6.6vw, 2.75rem);
+  --t-data:.8125rem; --t-data-lg:.9375rem; --t-holder:.75rem;
+
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px; --s10:128px;
+  --gutter:48px; --max:1360px; --cock:28px;
+  --r-strip:2px; --r-holder:1px; --r-control:2px; --r-pill:999px;
+  --sh-strip:0 1px 0 rgba(0,0,0,.14), 0 6px 14px -8px rgba(0,0,0,.4);
+  --sh-cocked:0 2px 0 rgba(0,0,0,.16), 0 14px 24px -12px rgba(0,0,0,.5);
+  --sh-tile:0 24px 48px -32px rgba(0,0,0,.5);
+  --dur-instant:120ms; --dur-state:240ms; --dur-slide:520ms; --dur-sift:760ms;
+  --ease-out:cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out:cubic-bezier(0.65, 0, 0.35, 1);
+  --focus:var(--board);
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scrollbar-color:var(--rule-strong) var(--ground);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-text);font-size:var(--t-body);line-height:1.6;caret-color:var(--board);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+::selection{background:var(--board);color:var(--on-board)}
+.on-board ::selection{background:var(--on-board);color:var(--board)}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--ground)}
+::-webkit-scrollbar-thumb{background:var(--rule-strong);border:3px solid var(--ground);border-radius:var(--r-pill)}
+input, button{outline-color:var(--focus)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+.on-board{--focus:var(--on-board)}
+.on-board .strip, .on-board .tile, .on-board .panel{--focus:var(--board)}
+a{color:inherit}
+img,svg{display:block}
+h1,h2,h3{margin:0;font-weight:700;text-wrap:balance}
+p{margin:0}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ic-s{width:16px;height:16px}
+.mono{font-family:var(--f-data)}
+.num{font-variant-numeric:tabular-nums}
+.skip{position:absolute;left:var(--s4);top:-60px;z-index:20;background:var(--paper);color:var(--board);padding:var(--s2) var(--s4);font-weight:700;border-radius:var(--r-control)}
+.skip:focus{top:var(--s3)}
+
+/* ---------- buttons and links ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 20px;font:700 var(--t-ui)/1.2 var(--f-text);border:0;border-radius:var(--r-control);background:var(--board);color:var(--on-board);text-decoration:none;cursor:pointer;transition:background var(--dur-instant) var(--ease-out),transform var(--dur-instant) var(--ease-out)}
+.btn:hover{background:var(--board-deep)}
+.btn:active{transform:translateY(1px)}
+.btn .ic{transition:transform var(--dur-state) var(--ease-out)}
+.btn:hover .ic{transform:translateX(3px)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-paper{background:var(--paper);color:var(--board)}
+.btn-paper:hover{background:var(--paper-press)}
+.btn-sm{min-height:40px;padding:0 16px;font-size:.9375rem}
+.link{display:inline-flex;align-items:center;gap:6px;color:var(--board);font-weight:700;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.link .ic{transition:transform var(--dur-state) var(--ease-out)}
+.link:hover .ic{transform:translateX(3px)}
+
+/* ---------- top rail ---------- */
+.board{background:var(--board);color:var(--on-board)}
+.rail{display:flex;align-items:center;gap:var(--s5);height:64px;width:100%;max-width:var(--max);margin:0 auto;box-shadow:inset 0 -1px 0 var(--board-rule)}
+.mark{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:var(--t-figure);letter-spacing:-.02em;text-decoration:none;color:var(--on-board)}
+.mark svg{width:30px;height:20px}
+.rail > nav{display:flex;gap:var(--s5);margin-left:var(--s5)}
+.rail > nav a{color:var(--on-board-2);text-decoration:none;font-size:.9375rem;padding:6px 0;border-bottom:1px solid transparent;transition:color var(--dur-instant),border-color var(--dur-instant)}
+.rail > nav a:hover{color:var(--on-board);border-color:var(--on-board-3)}
+.readout{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;font:400 .75rem/1.35 var(--f-data);color:var(--on-board-3);letter-spacing:.04em;text-transform:uppercase}
+.readout b{color:var(--on-board);font-weight:700}
+.menu{display:none;position:relative}
+.menubtn{cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--on-board-3);border-radius:var(--r-control);background:transparent;font:400 .9375rem/1.3 var(--f-text);color:var(--on-board)}
+.menubtn[aria-expanded="true"]{background:var(--on-board);color:var(--board)}
+.mnav{position:absolute;right:0;top:48px;z-index:30;background:var(--paper);box-shadow:var(--sh-cocked);border-radius:var(--r-strip);min-width:220px;padding:var(--s2) 0}
+.mnav[hidden]{display:none}
+.mnav a{display:block;padding:12px 16px;color:var(--ink);text-decoration:none;font-size:var(--t-ui)}
+.mnav a:hover{background:var(--paper-2)}
+
+/* ---------- hero ---------- */
+.hero{min-height:100svh;display:flex;flex-direction:column;padding:0 var(--gutter) var(--s3)}
+.bay{flex:1;display:flex;flex-direction:column;gap:var(--s3);width:100%;max-width:var(--max);margin:0 auto;padding-top:var(--s4)}
+.streamhead{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3) var(--s5);font:400 var(--t-data)/1.35 var(--f-data)}
+.streamname{display:flex;align-items:center;gap:var(--s3);color:var(--on-board)}
+.streamname strong{font-weight:700;font-size:.875rem}
+.streamname > span{color:var(--on-board-3)}
+.live{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 9px;border-radius:var(--r-pill);border:1px solid var(--on-board);background:var(--on-board);color:var(--board);font:700 .75rem/1 var(--f-data);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background var(--dur-state),color var(--dur-state)}
+.live .ic{width:14px;height:14px}
+.live[aria-pressed="false"]{background:transparent;color:var(--on-board)}
+.tally{display:flex;align-items:center;gap:var(--s4);color:var(--on-board-2)}
+.tally b{color:var(--on-board);font-weight:700}
+.tally .t-unx{display:inline-flex;align-items:center;gap:6px}
+.tally .t-unx .ic{width:16px;height:16px;color:var(--signal-on-board)}
+.sift{margin-left:auto;display:flex;align-items:center;gap:var(--s3);border:0;padding:0;min-width:0}
+.sift legend{float:left;margin-right:var(--s3);color:var(--on-board-3)}
+.seg{display:inline-flex;border:1px solid var(--on-board-3);border-radius:var(--r-control);padding:4px;gap:4px}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:inline-flex;align-items:center;min-height:36px;padding:0 16px;border-radius:1px;font:700 .75rem/1 var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--on-board-2);transition:background var(--dur-state) var(--ease-out),color var(--dur-state) var(--ease-out)}
+.seg input:checked + span{background:var(--on-board);color:var(--board)}
+.seg label:hover input:not(:checked) + span{color:var(--on-board)}
+.seg input:focus-visible + span{outline:2px solid var(--on-board);outline-offset:2px}
+
+.hist{position:relative;padding-top:34px;padding-left:36px}
+.bars{position:relative;display:flex;gap:2px;height:54px;cursor:crosshair}
+.bars::after{content:"";position:absolute;left:0;right:0;top:36px;border-top:1px solid var(--on-board-3);pointer-events:none}
+.bar{flex:1;display:grid;grid-template-rows:36px 18px}
+.bar .up{display:flex;align-items:flex-end;padding-bottom:1px}
+.bar .dn{display:flex;align-items:flex-start;padding-top:2px}
+.bar i{display:block;width:100%;background:var(--on-board-2);opacity:.7}
+.bar .up i{border-radius:2px 2px 0 0}
+.bar .dn i{background:var(--signal-on-board);opacity:1;border-radius:0 0 2px 2px}
+.bar.hot .up i{opacity:1}
+.hlab{position:absolute;left:0;font:700 var(--t-holder)/1 var(--f-data);letter-spacing:.06em;color:var(--on-board-3)}
+.hlab.u{color:var(--signal-on-board)}
+.axis{display:flex;justify-content:space-between;margin-top:4px;font:400 .75rem/1.35 var(--f-data);color:var(--on-board-3)}
+.callout{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;background:var(--paper);color:var(--ink);font:400 .75rem/1.35 var(--f-data);padding:5px 8px;border-radius:var(--r-strip);box-shadow:var(--sh-strip);pointer-events:none;transition:left var(--dur-state) var(--ease-out)}
+.callout b{color:var(--signal-ink);font-weight:700}
+.callout::after{content:"";position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:var(--paper);transform:translateX(-50%) rotate(45deg)}
+.callout.tip{background:var(--ink);color:var(--on-board)}
+.callout.tip::after{background:var(--ink)}
+.callout.tip b{color:var(--signal-on-board)}
+
+.rack{list-style:none;margin:0;padding:0 var(--cock) 0 0;display:flex;flex-direction:column;gap:6px}
+.strip{--frame:var(--expected);position:relative;padding:4px;background:var(--frame);color:var(--ink);border-radius:var(--r-strip);box-shadow:var(--sh-strip);transition:translate var(--dur-sift) var(--ease-in-out),background var(--dur-state)}
+.cells{display:grid;gap:1px;grid-template-columns:60px 124px minmax(150px,1.15fr) 48px minmax(150px,1fr) 136px 132px;min-height:36px;font:400 var(--t-data)/1.35 var(--f-data)}
+.cells > *{display:flex;align-items:center;padding:0 12px;background:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cells > .holder{background:transparent;padding:0 6px 0 2px}
+.holder{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--expected-ink);font:700 var(--t-holder)/1.35 var(--f-data);letter-spacing:.06em}
+.holder .ic{width:15px;height:15px}
+.c-time{color:var(--ink-3)}
+.c-route{font:700 .9375rem/1.1 var(--f-text);color:var(--ink)}
+.c-status{justify-content:center}
+.c-code{color:var(--ink)}
+.c-req{color:var(--ink-2)}
+.c-trace{justify-content:flex-end;color:var(--ink-2);text-decoration:none}
+a.c-trace{color:var(--board);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.raw{display:none;margin:0;padding:0 12px;min-height:36px;font:400 var(--t-data)/36px var(--f-data);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2);background:var(--paper)}
+.raw b{color:var(--signal-ink);font-weight:700}
+.strip[data-k="unx"]{--frame:var(--signal);translate:var(--cock) 0;box-shadow:var(--sh-cocked);outline:1px solid var(--signal);outline-offset:2px}
+.strip[data-k="unx"] .cells > *:not(.holder){background:var(--signal-wash)}
+.strip[data-k="unx"] .holder{color:var(--on-board)}
+.strip[data-k="unx"] .c-code{color:var(--signal-ink);font-weight:700}
+.strip[data-age="2"] .cells > :not(.holder){color:var(--ink-2)}
+.strip[data-age="3"] .cells > :not(.holder){color:var(--ink-3)}
+.strip[data-age="3"] .c-trace{color:var(--ink-3)}
+.rack[data-mode="raw"] .cells{display:none}
+.rack[data-mode="raw"] .raw{display:block}
+.rack[data-mode="raw"] .strip{--frame:var(--paper);translate:0 0;outline-color:transparent;box-shadow:var(--sh-strip)}
+.divider{display:flex;align-items:center;gap:var(--s3);min-height:24px;font:400 .75rem/1.35 var(--f-data);color:var(--on-board-2)}
+.divider span{border:1px solid var(--on-board-3);border-radius:var(--r-pill);padding:5px 10px;white-space:nowrap}
+.divider::after{content:"";flex:1;border-top:1px solid var(--board-rule)}
+
+.tile{width:100%;max-width:var(--max);margin:var(--s4) auto 0;background:var(--paper);color:var(--ink);border-radius:var(--r-strip);box-shadow:var(--sh-tile);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.hcell{padding:var(--s6) var(--s7) var(--s6) var(--s6);display:flex;align-items:flex-end}
+.tile h1{font-size:min(var(--t-display), 7.4svh);line-height:.98;letter-spacing:-.03em;max-width:15ch}
+.act{border-left:1px solid var(--rule);padding:28px var(--s6);display:flex;flex-direction:column;justify-content:space-between;gap:var(--s5)}
+.act .lede{font-size:var(--t-body);line-height:1.55;color:var(--ink-2);max-width:60ch}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3) var(--s5)}
+.legend{display:grid;gap:6px;border-top:1px solid var(--rule);padding-top:var(--s4);font-size:var(--t-small);color:var(--ink-2)}
+.legend div{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:var(--s3)}
+.legend .holder{height:26px;border-radius:var(--r-holder);background:var(--expected)}
+.legend .holder.unx{background:var(--signal);color:var(--on-board)}
+
+/* ---------- sections ---------- */
+.section{padding:var(--s9) var(--gutter) var(--s8)}
+.wrap{max-width:var(--max);margin:0 auto}
+.section h2{font-size:var(--t-headline);line-height:1.02;letter-spacing:-.025em;max-width:17ch;margin-bottom:var(--s5)}
+.intro{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s5) var(--s6);align-items:end}
+.intro p{color:var(--ink-2);max-width:62ch}
+.intro.stack{grid-template-columns:minmax(0,1fr);gap:0}
+.intro.stack h2{max-width:22ch}
+.on-board .intro p{color:var(--on-board-2)}
+.synthetic{font:400 .75rem/1.3 var(--f-data);color:var(--ink-3);letter-spacing:.04em}
+.on-board .synthetic{color:var(--on-board-3)}
+
+/* classification bays */
+.bays{margin-top:var(--s8);display:grid;gap:var(--s8)}
+.bayhead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s4);border-bottom:1px solid var(--rule-strong);padding-bottom:var(--s3);margin-bottom:var(--s4)}
+.bayhead h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.bayhead h3 .ic{width:22px;height:22px}
+.bayhead .count{font:400 var(--t-data)/1.35 var(--f-data);color:var(--ink-3)}
+.xrack{list-style:none;margin:0;padding:0 var(--cock) 0 0;display:grid;gap:10px}
+.xrack .cells{grid-template-columns:56px minmax(170px,1fr) 56px minmax(0,2.1fr) minmax(150px,.9fr) 156px;min-height:48px}
+.xrack .c-code{font:700 var(--t-ui)/1.3 var(--f-text);color:var(--ink)}
+.xrack .c-msg{color:var(--ink-2)}
+.xrack .c-dest{gap:8px;color:var(--ink);font-weight:700}
+.xrack .strip[data-k="unx"] .c-code{color:var(--ink)}
+.xrack .strip[data-k="unx"] .c-dest{color:var(--signal-ink)}
+.note{display:flex;align-items:flex-start;gap:var(--s2);margin:8px 0 4px 64px;font:italic 400 .9375rem/1.4 var(--f-text);color:var(--pencil)}
+.note svg{width:34px;height:26px;flex:none;fill:none;stroke:var(--pencil);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* one request */
+.req{margin-top:var(--s8);display:grid;gap:var(--s6)}
+.print{margin:0;background:var(--paper);border-radius:var(--r-strip);box-shadow:var(--sh-strip)}
+.printhead{display:grid;gap:1px;grid-template-columns:56px 1fr auto;min-height:40px;padding:4px;background:var(--signal);border-top-left-radius:var(--r-strip);border-top-right-radius:var(--r-strip);font:400 var(--t-data)/1.35 var(--f-data)}
+.printhead > *{display:flex;align-items:center;padding:0 12px;background:var(--paper)}
+.printhead .holder{background:transparent;color:var(--on-board);padding:0}
+.printhead span:last-child{color:var(--ink-3)}
+.jsonl{list-style:none;margin:0;padding:var(--s5) var(--s5) var(--s5) 0;counter-reset:ln;border:1px solid var(--rule-strong);border-top:0;border-radius:0 0 var(--r-strip) var(--r-strip)}
+.jsonl li{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--s5);min-height:30px;padding-left:48px;position:relative}
+.jsonl li::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:34px;top:6px;font:400 .75rem/1.35 var(--f-data);color:var(--ink-3);text-align:right}
+.jsonl code{font:400 var(--t-data-lg)/1.55 var(--f-data);white-space:pre;min-width:0}
+.jsonl .k{color:var(--ink-2)}
+.jsonl .s{color:var(--ink)}
+.jsonl .n{color:var(--board)}
+.jsonl .x{color:var(--signal-ink);font-weight:700}
+.jsonl .f{display:inline-flex;align-items:center;gap:5px;background:var(--paper-2);outline:1px dashed var(--rule-strong);outline-offset:-1px;padding:0 6px;border-radius:1px;color:var(--ink-2)}
+.jsonl .f .ic{width:13px;height:13px}
+.loop{position:relative;display:inline-block;padding:0 3px}
+.loop svg{position:absolute;left:-12px;top:-9px;width:calc(100% + 24px);height:calc(100% + 18px);fill:none;stroke:var(--pencil);stroke-width:1.4;stroke-linecap:round;overflow:visible;pointer-events:none}
+.jsonl .pn{display:flex;align-items:center;gap:8px;padding:0;font:italic 400 .875rem/1.35 var(--f-text);color:var(--pencil)}
+.jsonl .pn svg{width:28px;height:14px;flex:none;fill:none;stroke:var(--pencil);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.req2{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s6)}
+.wf{align-self:start;background:var(--paper);border-radius:var(--r-strip);box-shadow:var(--sh-strip);outline:1px solid var(--rule-strong);padding:var(--s5)}
+.wf h3, .redact h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em;margin-bottom:6px}
+.wf .sub{font:400 var(--t-data)/1.4 var(--f-data);color:var(--ink-3);margin-bottom:var(--s5)}
+.wf .sub a{color:var(--board)}
+.spans{position:relative;display:grid;gap:8px}
+.span{display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);align-items:center;gap:var(--s3);font:400 .75rem/1.35 var(--f-data)}
+.span .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.span .nm b{color:var(--ink);font-weight:700}
+.track{position:relative;height:22px}
+.gl{position:absolute;top:-4px;bottom:-4px;width:0;border-left:1px solid var(--grid);pointer-events:none}
+.track i{position:absolute;top:3px;bottom:3px;background:var(--series-exp);border-radius:2px;min-width:3px}
+.track i.bad{background:var(--series-unx)}
+.track em{position:absolute;top:50%;transform:translateY(-50%);font-style:normal;color:var(--ink-3);white-space:nowrap;padding-left:6px}
+.wfaxis{display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);gap:var(--s3);margin-top:8px;font:400 .75rem/1.35 var(--f-data);color:var(--ink-3)}
+.wfaxis div{display:flex;justify-content:space-between}
+.deadline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--signal);pointer-events:none}
+.deadline span{position:absolute;top:-22px;right:6px;white-space:nowrap;font:700 .75rem/1.35 var(--f-data);color:var(--signal-ink)}
+.redact{align-self:start;border-top:1px solid var(--rule-strong);padding-top:var(--s4)}
+.redact p{color:var(--ink-2);font-size:var(--t-small);margin-bottom:var(--s4)}
+.redact ul{list-style:none;margin:0;padding:0}
+.redact li{display:flex;align-items:center;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--rule)}
+.redact li .ic{color:var(--board)}
+.redact code{font:400 var(--t-data)/1.35 var(--f-data);color:var(--ink-3);margin-left:auto;white-space:nowrap}
+
+/* dashboards */
+.dash{margin-top:var(--s8);display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s7)}
+.dash .panel:nth-child(3){grid-column:1 / -1}
+.panel{position:relative;background:var(--paper);color:var(--ink);border-radius:var(--r-strip);box-shadow:var(--sh-tile);padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3);min-width:0}
+.panel h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em}
+.panel .sub{font:400 var(--t-data)/1.35 var(--f-data);color:var(--ink-3);margin-top:-6px}
+.panel + .panel::before{content:"";position:absolute;left:calc(var(--s7) / -2 - 14px);top:50%;width:28px;height:28px;margin-top:-14px;z-index:1;border-radius:50%;background:var(--board-deep);border:1px solid var(--on-board-3);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23fff' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 10h9M11 6.5 14.5 10 11 13.5'/%3E%3C/svg%3E");background-size:18px;background-position:center;background-repeat:no-repeat}
+.chart{position:relative;width:100%}
+.chart svg{width:100%;overflow:visible}
+.chart svg text{font-family:var(--f-data);font-size:var(--t-holder);fill:var(--ink-3)}
+.dash .panel:nth-child(3)::before{left:50%;top:calc(var(--s7) / -2 - 14px);margin:0 0 0 -14px;transform:rotate(90deg)}
+.chart svg .lab{fill:var(--ink);font-weight:700}
+.chart:focus-visible{outline-offset:6px}
+.tt{position:absolute;z-index:3;pointer-events:none;background:var(--ink);color:var(--on-board);font:400 .75rem/1.45 var(--f-data);padding:8px 10px;border-radius:var(--r-strip);white-space:nowrap;box-shadow:var(--sh-strip);opacity:0;transition:opacity var(--dur-instant)}
+.tt.on{opacity:1}
+.tt i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.key{display:flex;flex-wrap:wrap;gap:6px var(--s4);font:400 .75rem/1.35 var(--f-data);color:var(--ink-2)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.key i.thr{height:0;border-top:2px dashed var(--signal-ink);background:none;border-radius:0}
+.key i.band{height:10px;background:var(--signal-wash);outline:1px solid var(--signal-rule);border-radius:0}
+.now{margin-top:auto;display:flex;gap:var(--s5);border-top:1px solid var(--rule);padding-top:var(--s3);font:400 .75rem/1.35 var(--f-data);color:var(--ink-3)}
+.now b{display:block;font:700 var(--t-figure)/1.3 var(--f-text);color:var(--ink);font-variant-numeric:tabular-nums}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tabs button{font:400 .75rem/1.35 var(--f-data);min-height:32px;padding:0 10px;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);border-radius:var(--r-control);cursor:pointer;transition:background var(--dur-instant),color var(--dur-instant),border-color var(--dur-instant)}
+.tabs button:hover{border-color:var(--rule-strong);color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--board);border-color:var(--board);color:var(--on-board)}
+.dashfoot{margin-top:var(--s6);display:flex;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+
+/* alerts */
+.rules{margin-top:var(--s8);list-style:none;padding:0;border-bottom:1px solid var(--rule-strong)}
+.rule{display:grid;grid-template-columns:120px minmax(0,1.35fr) minmax(0,1fr);gap:var(--s3) var(--s6);padding:var(--s5) 0;border-top:1px solid var(--rule-strong);align-items:start}
+.dest{justify-self:start;min-width:96px;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 10px;border-radius:var(--r-holder);font:700 var(--t-holder)/1.35 var(--f-data);letter-spacing:.06em;background:var(--expected);color:var(--expected-ink)}
+.dest.page{background:var(--signal);color:var(--on-board)}
+.dest.never{background:transparent;outline:1px dashed var(--rule-strong);outline-offset:-1px;color:var(--ink-2)}
+.dest .ic{width:15px;height:15px}
+.rule h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em;margin-bottom:var(--s2)}
+.rule.struck h3{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--pencil)}
+.q{display:block;font:400 var(--t-data)/1.55 var(--f-data);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-strip);padding:10px 12px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.why{color:var(--ink-2)}
+.why .win{display:block;font:700 var(--t-data)/1.3 var(--f-data);color:var(--ink);margin-bottom:6px}
+.why .rb{display:block;margin-top:8px;font:400 .75rem/1.3 var(--f-data);color:var(--ink-3)}
+
+/* scope */
+.scope{margin-top:var(--s8);display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s7)}
+.manifest{align-self:start;list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.manifest .cells{grid-template-columns:48px minmax(0,1fr);font-family:var(--f-text)}
+.manifest .cells > div{display:block;white-space:normal;padding:var(--s4) var(--s5)}
+.manifest .holder{color:var(--board)}
+.manifest b{display:block;font-size:var(--t-body);line-height:1.3;margin-bottom:4px}
+.manifest .d{color:var(--ink-2);font-size:var(--t-small);line-height:1.5;display:block}
+.side h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em;margin-bottom:var(--s4)}
+.steps{list-style:none;margin:0 0 var(--s7);padding:0;display:grid;gap:10px}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:var(--s3);align-items:start;background:var(--paper);border-radius:var(--r-strip);box-shadow:var(--sh-strip);padding:var(--s4)}
+.steps .when{font:700 var(--t-holder)/1.35 var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--board);border:1px solid var(--board);padding:6px 8px;border-radius:var(--r-holder);white-space:nowrap}
+.steps b{display:block;line-height:1.3}
+.steps span{color:var(--ink-2);font-size:var(--t-small)}
+.tools{list-style:none;margin:0;padding:0}
+.tools li{display:flex;justify-content:space-between;gap:var(--s4);padding:10px 0;border-bottom:1px solid var(--rule);font-size:.9375rem}
+.tools li span{font:400 .75rem/1.6 var(--f-data);color:var(--ink-3);text-align:right}
+
+/* booking */
+.book{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s7);align-items:start}
+.book .intro.stack{margin-bottom:var(--s7)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:var(--s5)}
+.field{display:grid;gap:8px;align-content:start}
+.field.wide{grid-column:1 / -1}
+.field > label, .field > legend{font-size:var(--t-small);font-weight:700;color:var(--ink);padding:0}
+.field input[type="text"], .field input[type="email"]{height:48px;width:100%;padding:0 14px;font:400 var(--t-ui)/1.3 var(--f-text);color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:var(--r-control);transition:border-color var(--dur-instant)}
+.field input::placeholder{color:var(--ink-3)}
+.field input:hover{border-color:var(--ink-3)}
+.field input:focus-visible{outline:2px solid var(--board);outline-offset:0;border-color:var(--board)}
+.field input[aria-invalid="true"]{border-color:var(--signal)}
+.err{font-size:var(--t-small);color:var(--signal-ink);min-height:0}
+.err:empty{display:none}
+.hint{font-size:var(--t-small);color:var(--ink-3)}
+fieldset.field{border:0;margin:0;padding:0;min-width:0}
+.stepper{display:inline-grid;grid-template-columns:48px 72px 48px;height:48px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--paper);width:max-content}
+.stepper button{border:0;background:transparent;color:var(--board);cursor:pointer;display:grid;place-items:center;transition:background var(--dur-instant)}
+.stepper button:hover{background:var(--paper-press)}
+.stepper button:disabled{color:var(--rule-strong);cursor:not-allowed;background:transparent}
+.stepper output{display:grid;place-items:center;border-inline:1px solid var(--rule);font:700 var(--t-callsign)/1.35 var(--f-data);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative;cursor:pointer}
+.chips input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chips span{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--paper);font:400 .875rem/1.35 var(--f-data);color:var(--ink-2);transition:background var(--dur-instant),color var(--dur-instant),border-color var(--dur-instant)}
+.chips span .ic{width:14px;height:14px;display:none}
+.chips label:hover span{border-color:var(--ink-3);color:var(--ink)}
+.chips input:checked + span{background:var(--board);border-color:var(--board);color:var(--on-board)}
+.chips input:checked + span .ic{display:block}
+.chips input:focus-visible + span{outline:2px solid var(--board);outline-offset:2px}
+.radios{display:grid;gap:8px}
+.radios label{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--paper);cursor:pointer;font-size:.9375rem;transition:border-color var(--dur-instant)}
+.radios label:hover{border-color:var(--ink-3)}
+.radios input{accent-color:var(--board);width:18px;height:18px;margin:0}
+.radios label:has(input:checked){border-color:var(--board);box-shadow:inset 0 0 0 1px var(--board)}
+.fplan{position:sticky;top:var(--s5);border-radius:var(--r-strip);padding:var(--s5);display:grid;gap:var(--s4)}
+.fplan h3{font-size:var(--t-title);line-height:1.3;letter-spacing:-.01em}
+.fplan .strip{display:grid;gap:1px;margin-right:12px;transition:translate var(--dur-sift) var(--ease-in-out),background var(--dur-state)}
+.fplan .cells{grid-template-columns:60px minmax(0,1fr) 72px;min-height:48px}
+.fplan .cells .c-route{display:flex;font-size:var(--t-ui);text-transform:uppercase;letter-spacing:.02em}
+.fplan .row2{display:grid;gap:1px;grid-template-columns:repeat(2,minmax(0,1fr));font:400 .75rem/1.35 var(--f-data)}
+.fplan .row2 > span{padding:8px 12px;color:var(--ink-2);background:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fplan .strip[data-k="unx"] .row2 > span{background:var(--signal-wash)}
+.fplan .strip.pending{--frame:var(--paper-press);outline:2px dashed var(--on-board-3);outline-offset:3px}
+.fplan .strip[data-k="unx"]{translate:12px 0}
+.fplan .strip[data-k="set"]{--frame:var(--board-deep);outline:1px solid var(--on-board-2);outline-offset:2px}
+.fplan .strip[data-k="set"] .holder{color:var(--on-board)}
+.scopelist{list-style:none;margin:0;padding:0;font-size:.9375rem}
+.scopelist li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--board-rule);color:var(--on-board)}
+.scopelist li .ic{width:18px;height:18px;color:var(--on-board-2);margin-top:2px}
+.fplan .fine{font-size:var(--t-small);color:var(--on-board-2)}
+.fplan .btn{justify-self:start}
+.filed{display:none;z-index:1;font:700 .75rem/1.35 var(--f-data);letter-spacing:.06em;color:var(--signal-ink);border:2px solid var(--signal-ink);padding:6px 8px;border-radius:var(--r-holder);position:absolute;right:16px;top:-14px;background:var(--paper);rotate:-4deg}
+.fplan.done .filed{display:block}
+.status{font-size:var(--t-small);color:var(--on-board);min-height:1.45em}
+
+/* footer */
+.foot{padding:var(--s8) var(--gutter) var(--s6)}
+.foot .wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s6);align-items:end}
+.foot p{color:var(--on-board-2);font-size:var(--t-small);max-width:60ch}
+.foot .demo{color:var(--on-board);font-weight:700;font-size:var(--t-ui);margin-bottom:6px}
+.foot nav{display:flex;gap:var(--s5);flex-wrap:wrap}
+.foot nav a{color:var(--on-board-2);font-size:var(--t-small);text-underline-offset:4px}
+.foot nav a:hover{color:var(--on-board)}
+.foot .mark{margin-bottom:var(--s5)}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px){
+  :root{--gutter:32px}
+  .cells{grid-template-columns:56px 118px minmax(140px,1.1fr) 48px minmax(140px,1fr) 124px}
+  .cells .c-req{display:none}
+  .xrack .cells{grid-template-columns:56px minmax(160px,1fr) 52px minmax(0,1.8fr) 150px}
+  .xrack .c-route{display:none}
+  .dash{grid-template-columns:1fr;gap:var(--s7)}
+  .dash .panel:nth-child(3){grid-column:auto}
+  .panel + .panel::before{left:50%;top:calc(var(--s7) / -2 - 14px);margin:0 0 0 -14px;transform:rotate(90deg)}
+  .rail > nav{gap:var(--s4)}
+  .readout{display:none}
+}
+@media (max-width: 900px){
+  :root{--gutter:24px}
+  .rail > nav{display:none}
+  .menu{display:block}
+  .rail .btn{margin-left:auto}
+  .tile{grid-template-columns:1fr}
+  .hcell{padding:var(--s5) var(--s5) var(--s4)}
+  .tile h1{max-width:none}
+  .act{border-left:0;border-top:1px solid var(--rule);padding:var(--s5)}
+  .intro, .req2, .scope, .book{grid-template-columns:1fr}
+  .sift{margin-left:0}
+  .fplan{position:static}
+}
+@media (max-width: 700px){
+  :root{--cock:12px;--gutter:16px}
+  .section{padding:var(--s8) var(--gutter) var(--s7)}
+  .bay{gap:10px;padding-top:var(--s3)}
+  .streamhead{gap:10px var(--s3)}
+  .streamname > span{display:none}
+  .tally{order:3;width:100%;justify-content:space-between;gap:var(--s3)}
+  .sift legend{display:none}
+  .hist{padding-top:30px;padding-left:30px}
+  .bars{gap:1px}
+  .cells{grid-template-columns:48px 78px 40px minmax(0,1fr);min-height:38px}
+  .cells > *{padding:0 8px}
+  .cells .ms{display:none}
+  .cells .c-route, .cells .c-trace, .cells .c-req{display:none}
+  .raw{min-height:38px;line-height:38px;padding:0 10px;font-size:.75rem}
+  .tile h1{font-size:var(--t-display-sm)}
+  .hcell{padding:var(--s5) var(--s4) var(--s3)}
+  .act{padding:var(--s4) var(--s4) var(--s5);gap:var(--s4)}
+  .act .lede{font-size:var(--t-ui)}
+  .lede-lead, .hide-sm{display:none}
+  .legend{font-size:.8125rem}
+  .menubtn .mt{display:none}
+  .rail .btn{font-size:.875rem;padding:0 12px;gap:6px}
+  .rail .btn .ic{width:16px;height:16px}
+  .rail{gap:var(--s3)}
+  .xrack .cells{grid-template-columns:48px minmax(0,1fr) 48px;grid-template-rows:auto auto;min-height:0}
+  .xrack .cells > *{padding:10px}
+  .xrack .c-msg{grid-column:2 / -1;grid-row:2;white-space:normal;font-size:.75rem}
+  .xrack .holder{grid-row:1 / 3}
+  .xrack .c-dest{display:none}
+  .note{margin-left:48px;font-size:.875rem}
+  .jsonl{padding-right:var(--s3)}
+  .jsonl code{font-size:.75rem;white-space:pre-wrap;overflow-wrap:anywhere}
+  .jsonl li{padding-left:36px}
+  .jsonl li::before{width:26px}
+  .jsonl .pn{flex-basis:100%;padding:2px 0 8px}
+  .printhead span:last-child{display:none}
+  .printhead{grid-template-columns:48px 1fr}
+  .span, .wfaxis{grid-template-columns:1fr;gap:4px}
+  .wfaxis > span:first-child{display:none}
+  .span .nm{white-space:normal}
+  .rule{grid-template-columns:1fr;gap:var(--s3)}
+  .fields{grid-template-columns:1fr}
+  .fplan .row2{grid-template-columns:1fr}
+  .foot .wrap{grid-template-columns:1fr}
+}
+@media (max-width: 380px){
+  .cells{grid-template-columns:44px 74px minmax(0,1fr)}
+  .cells .c-status{display:none}
+  .rail .btn .ic{display:none}
+}
+@media (max-height: 760px) and (min-width: 701px){
+  .hcell{padding-top:var(--s5);padding-bottom:var(--s5)}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:1ms!important;animation-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-warn" viewBox="0 0 20 20"><path d="M10 3.4 17.4 16.3H2.6Z"/><path d="M10 8.3v3.6M10 14.2v.1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.2"/><path d="m6.9 10.2 2.1 2.1 4.2-4.5"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 20 20"><path d="m4.5 10.5 3.6 3.6 7.4-8"/></symbol>
+  <symbol id="i-play" viewBox="0 0 20 20"><path d="M7 5.2v9.6l7.4-4.8Z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 20 20"><path d="M7.5 5.5v9M12.5 5.5v9"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M4 10h11.5M11.5 6 15.5 10l-4 4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 20 20"><path d="M5.6 13.6V9.2a4.4 4.4 0 0 1 8.8 0v4.4l1.5 1.6H4.1Z"/><path d="M8.4 17.2a1.7 1.7 0 0 0 3.2 0"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 20 20"><path d="M3.8 4.6h12.4v8.6H9.2l-3.6 3v-3H3.8Z"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.2"/><path d="M6.6 10h6.8"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 20 20"><rect x="4.6" y="9" width="10.8" height="7.6" rx="1"/><path d="M7.2 9V7a2.8 2.8 0 0 1 5.6 0v2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 20 20"><path d="M3.5 16.5h13M5.5 13.5l3.2-3.8 2.6 2.2 4.2-5.4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 20 20"><path d="M3.5 6h13M3.5 10h13M3.5 14h13"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hero board on-board" id="top">
+  <div class="rail">
+    <a class="mark" href="#top" aria-label="Tamis, home">
+      <svg viewBox="0 0 30 20" aria-hidden="true"><rect x="1" y="4" width="28" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75"/><rect x="1" y="4" width="8" height="12" rx="1.5" fill="currentColor"/><path d="M14 10h11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+      Tamis
+    </a>
+    <nav aria-label="Sections">
+      <a href="#split">The split</a>
+      <a href="#request">One request</a>
+      <a href="#dashboards">Dashboards</a>
+      <a href="#alerts">Alerts</a>
+      <a href="#scope">Scope</a>
+    </nav>
+    <div class="readout" aria-label="Demo stream clock">
+      <span>Stream time <b class="num" id="clock">09:44:52</b> UTC</span>
+      <span>Demo stream, synthetic</span>
+    </div>
+    <a class="btn btn-paper btn-sm" href="#book">Book a setup <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <div class="menu">
+      <button class="menubtn" type="button" id="menubtn" aria-expanded="false" aria-controls="mnav" aria-label="Menu"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg><span class="mt">Menu</span></button>
+      <nav class="mnav" id="mnav" aria-label="Sections, mobile" hidden>
+        <a href="#split">The split</a>
+        <a href="#request">One request</a>
+        <a href="#dashboards">Dashboards</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#scope">Scope</a>
+      </nav>
+    </div>
+  </div>
+
+  <section class="bay" aria-label="Synthetic error stream from checkout-api">
+    <div class="streamhead">
+      <div class="streamname">
+        <strong>checkout-api</strong><span>production, errors only</span>
+        <button class="live" id="live" type="button" aria-pressed="true"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg><span>Live</span></button>
+      </div>
+      <p class="tally" aria-live="off">
+        <span class="t-unx"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><b class="num" id="t-unx">3</b> unexpected</span>
+        <span><b class="num" id="t-exp">0</b> expected<span class="hide-sm">, not paged</span></span>
+        <span>last 15 min</span>
+      </p>
+      <fieldset class="sift">
+        <legend>View</legend>
+        <div class="seg">
+          <label><input type="radio" name="sift" value="raw" checked><span>Raw</span></label>
+          <label><input type="radio" name="sift" value="sifted"><span>Sifted</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="hist">
+      <span class="hlab" style="top:46px" aria-hidden="true">EXP</span>
+      <span class="hlab u" style="top:74px" aria-hidden="true">UNX</span>
+      <div class="bars" id="bars" tabindex="0" role="img" aria-label="Errors per 15 seconds over the last 15 minutes: expected above the line, unexpected below it. A spike of 3 unexpected errors at 09:41."></div>
+      <div class="callout" id="callout" aria-hidden="true"></div>
+      <div class="axis" aria-hidden="true" id="axis"><span>09:30</span><span>09:35</span><span>09:40</span><span>09:45</span></div>
+    </div>
+
+    <ol class="rack" id="rack" data-mode="raw" aria-label="Most recent errors">
+      <li class="divider" id="divider" aria-hidden="true"><span id="divtext">Raw lines, the way most teams read them today</span></li>
+    </ol>
+  </section>
+
+  <div class="tile">
+    <div class="hcell"><h1>Page for what&rsquo;s broken. Count what&rsquo;s expected.</h1></div>
+    <div class="act">
+      <p class="lede"><span class="lede-lead">If your team hears about incidents from customers, every error probably looks the same. </span>Tamis sets up structured logs, splits errors into expected and unexpected, and wires dashboards and alerts into the stack you already run.</p>
+      <div class="actions">
+        <a class="btn" href="#book">Book a setup <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="link" href="#split">How errors get sorted <svg class="ic ic-s" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="legend">
+        <div><span class="holder unx"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span><span>Unexpected: pulled out of line, someone looks now.</span></div>
+        <div><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span><span>Expected: stays in line, counted, nobody is paged.</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="section" id="split" aria-labelledby="split-h">
+  <div class="wrap">
+    <div class="intro">
+      <h2 id="split-h">A declined card is not an incident.</h2>
+      <p>Every error type in your code gets a class, decided with your team, one type at a time. Unexpected errors page a person. Expected errors are counted and charted, and only alert when their rate moves. The status code does not decide it: some 5xx are expected, and some 4xx are your bug.</p>
+    </div>
+
+    <div class="bays">
+      <div>
+        <div class="bayhead">
+          <h3><svg class="ic" aria-hidden="true" style="color:var(--signal-ink)"><use href="#i-warn"/></svg>Unexpected: someone looks now</h3>
+          <span class="count">4 types in this example</span>
+        </div>
+        <ul class="xrack">
+          <li class="strip" data-k="unx"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>
+            <span class="c-code">upstream_timeout</span><span class="c-status num">504</span>
+            <span class="c-msg">psp-client: context deadline exceeded after 2000ms</span>
+            <span class="c-route">POST /v1/charges</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-bell"/></svg>Pages on-call</span>
+          </div></li>
+          <li class="strip" data-k="unx"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>
+            <span class="c-code">null_reference</span><span class="c-status num">500</span>
+            <span class="c-msg">TypeError: Cannot read properties of undefined (reading 'amount')</span>
+            <span class="c-route">POST /v1/refunds</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-bell"/></svg>Pages on-call</span>
+          </div></li>
+          <li class="strip" data-k="unx"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>
+            <span class="c-code">db_pool_exhausted</span><span class="c-status num">503</span>
+            <span class="c-msg">timeout acquiring connection: 20 of 20 in use</span>
+            <span class="c-route">GET /v1/orders/{id}</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-bell"/></svg>Pages on-call</span>
+          </div></li>
+          <li class="strip" data-k="unx"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>
+            <span class="c-code">signature_clock_skew</span><span class="c-status num">401</span>
+            <span class="c-msg">webhook signature timestamp outside 300s tolerance (skew 312s)</span>
+            <span class="c-route">POST /v1/webhooks/psp</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-bell"/></svg>Pages on-call</span>
+          </div></li>
+        </ul>
+        <p class="note"><svg viewBox="0 0 34 26" aria-hidden="true"><path d="M4 22c7 1 15-2 20-9 2-3 3-6 3-9"/><path d="m23 7 4-4 3 5"/></svg>A 401 that is our bug: the server clock drifted, so valid webhooks fail signature checks.</p>
+      </div>
+
+      <div>
+        <div class="bayhead">
+          <h3><svg class="ic" aria-hidden="true" style="color:var(--board)"><use href="#i-check"/></svg>Expected: counted, nobody is paged</h3>
+          <span class="count">5 types in this example</span>
+        </div>
+        <ul class="xrack">
+          <li class="strip" data-k="exp"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>
+            <span class="c-code">card_declined</span><span class="c-status num">402</span>
+            <span class="c-msg">issuer declined: do_not_honor</span>
+            <span class="c-route">POST /v1/charges</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-chart"/></svg>Chart only</span>
+          </div></li>
+          <li class="strip" data-k="exp"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>
+            <span class="c-code">validation_failed</span><span class="c-status num">422</span>
+            <span class="c-msg">shipping.postal_code: expected 8 digits, got 7</span>
+            <span class="c-route">POST /v1/checkout</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-chart"/></svg>Chart only</span>
+          </div></li>
+          <li class="strip" data-k="exp"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>
+            <span class="c-code">order_not_found</span><span class="c-status num">404</span>
+            <span class="c-msg">order ord_91XK was deleted by the customer</span>
+            <span class="c-route">GET /v1/orders/{id}</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-chart"/></svg>Chart only</span>
+          </div></li>
+          <li class="strip" data-k="exp"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>
+            <span class="c-code">idempotency_conflict</span><span class="c-status num">409</span>
+            <span class="c-msg">Idempotency-Key reused with a different request body</span>
+            <span class="c-route">POST /v1/charges</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-chart"/></svg>Chart only</span>
+          </div></li>
+          <li class="strip" data-k="exp"><div class="cells">
+            <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>
+            <span class="c-code">provider_maintenance</span><span class="c-status num">503</span>
+            <span class="c-msg">payment provider announced a window, 02:00 to 02:30 UTC</span>
+            <span class="c-route">POST /v1/charges</span>
+            <span class="c-dest"><svg class="ic ic-s" aria-hidden="true"><use href="#i-chart"/></svg>Chart only</span>
+          </div></li>
+        </ul>
+        <p class="note"><svg viewBox="0 0 34 26" aria-hidden="true"><path d="M4 22c7 1 15-2 20-9 2-3 3-6 3-9"/><path d="m23 7 4-4 3 5"/></svg>A 503 we were told about in advance. Chart it, show it on the status page, do not wake anyone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="request" aria-labelledby="request-h">
+  <div class="wrap">
+    <div class="intro stack">
+      <h2 id="request-h">One request, followed across every service.</h2>
+      <p>Every log line is JSON with the same fields in every service. The trace context travels in the W3C <code class="mono">traceparent</code> header, so the lines from the gateway, the API and the payment client open as one trace. Sensitive fields are filtered before the line is written, not masked later in the log store.</p>
+    </div>
+
+    <div class="req">
+      <figure class="print">
+        <div class="printhead">
+          <span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>
+          <span>checkout-api, stdout</span>
+          <span>1 line, pretty-printed</span>
+        </div>
+        <ol class="jsonl" aria-label="One structured log line">
+          <li><code>{</code></li>
+          <li><code>  <span class="k">"ts"</span>: <span class="s">"2026-09-29T09:41:07.312Z"</span>,</code></li>
+          <li><code>  <span class="k">"level"</span>: <span class="s">"error"</span>,</code></li>
+          <li><code>  <span class="k">"service"</span>: <span class="s">"checkout-api"</span>,</code></li>
+          <li><code>  <span class="k">"route"</span>: <span class="s">"POST /v1/charges"</span>,</code></li>
+          <li><code>  <span class="k">"status"</span>: <span class="n">504</span>, <span class="k">"duration_ms"</span>: <span class="n">2004</span>,</code></li>
+          <li><code>  <span class="k">"request_id"</span>: <span class="loop"><span class="s">"req_7Hq2kLx9Pw"</span><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M8 17C9 6 40 3 68 4c22 1 30 6 29 12-1 8-27 11-52 10C18 25 3 22 5 14 7 8 20 5 33 4"/></svg></span>,</code><span class="pn"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 7H3M8 2 3 7l5 5"/></svg>same id in the gateway, the API and the worker</span></li>
+          <li><code>  <span class="k">"trace_id"</span>: <span class="loop"><span class="s">"4bf92f3577b34da6a3ce929d0e0e4736"</span><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M5 15C6 5 35 3 62 3c24 0 34 5 33 12-1 8-28 12-54 11C16 25 2 21 4 14 6 8 22 4 38 3"/></svg></span>,</code><span class="pn"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 7H3M8 2 3 7l5 5"/></svg>from traceparent: opens the trace below</span></li>
+          <li><code>  <span class="k">"span_id"</span>: <span class="s">"00f067aa0ba902b7"</span>,</code></li>
+          <li><code>  <span class="k">"error.class"</span>: <span class="x">"unexpected"</span>,</code><span class="pn"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 7H3M8 2 3 7l5 5"/></svg>decided per error type, with you. This one pages.</span></li>
+          <li><code>  <span class="k">"error.code"</span>: <span class="s">"upstream_timeout"</span>,</code></li>
+          <li><code>  <span class="k">"error.message"</span>: <span class="s">"psp-client: context deadline exceeded after 2000ms"</span>,</code></li>
+          <li><code>  <span class="k">"customer.email"</span>: <span class="f"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>"[FILTERED]"</span>,</code><span class="pn"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 7H3M8 2 3 7l5 5"/></svg>dropped before write, never stored</span></li>
+          <li><code>  <span class="k">"card.number"</span>: <span class="f"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>"[FILTERED]"</span>,</code></li>
+          <li><code>  <span class="k">"http.request.header.authorization"</span>: <span class="f"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>"[FILTERED]"</span></code></li>
+          <li><code>}</code></li>
+        </ol>
+      </figure>
+
+      <div class="req2">
+        <figure class="wf" style="margin:0" aria-labelledby="wf-h">
+          <h3 id="wf-h">The same request as a trace</h3>
+          <p class="sub">trace_id <a href="#top">4bf92f3577b34da6…</a> · 2,010 ms · 6 spans · synthetic</p>
+          <div class="spans" id="spans">
+            <div class="span"><span class="nm"><b>gateway</b> POST /v1/charges</span><span class="track"><i style="left:0%;width:100%" title="gateway: 0 to 2010 ms"></i></span></div>
+            <div class="span"><span class="nm"><b>checkout-api</b> charges.create</span><span class="track"><i style="left:0.3%;width:99.6%" title="checkout-api: 6 to 2008 ms"></i></span></div>
+            <div class="span"><span class="nm"><b>postgres</b> SELECT orders</span><span class="track"><i style="left:0.6%;width:0.4%" title="postgres: 12 to 19 ms"></i><em style="left:1%">7 ms</em></span></div>
+            <div class="span"><span class="nm"><b>cache</b> GET idempotency key</span><span class="track"><i style="left:1%;width:0.2%" title="cache: 20 to 22 ms"></i><em style="left:1.2%">2 ms</em></span></div>
+            <div class="span"><span class="nm"><b>psp-client</b> POST /charges</span><span class="track"><i class="bad" style="left:1.2%;width:98.3%" title="psp-client: 24 to 2004 ms, deadline exceeded"></i></span></div>
+            <div class="span"><span class="nm"><b>ledger</b> write entry</span><span class="track" title="ledger: never started, the charge never reached the ledger"><em style="left:0">not started</em></span></div>
+            <i class="gl" aria-hidden="true"></i><i class="gl" aria-hidden="true"></i><i class="gl" aria-hidden="true"></i>
+            <div class="deadline" id="deadline" aria-hidden="true"><span>deadline 2000 ms</span></div>
+          </div>
+          <div class="wfaxis" aria-hidden="true"><span></span><div><span>0</span><span>500</span><span>1000</span><span>1500</span><span>2000 ms</span></div></div>
+        </figure>
+
+        <div class="redact">
+          <h3>Filtered before the line is written</h3>
+          <p>The filter runs inside the logger, with tests in your CI. The list is reviewed with you and lives in the guide.</p>
+          <ul>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Card numbers and CVV<code>card.*</code></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Emails and phone numbers<code>*.email, *.phone</code></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>National IDs such as CPF or SSN<code>*.tax_id</code></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Passwords, tokens and API keys<code>*.token, *.secret</code></li>
+            <li><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Authorization and Cookie headers<code>http.*.header.*</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section board on-board" id="dashboards" aria-labelledby="dash-h">
+  <div class="wrap">
+    <div class="intro stack">
+      <h2 id="dash-h">Three panels, read in the same order every time.</h2>
+      <p>Error rate first, then latency, then traffic. Each panel shows the trend before the number. When the first one is calm, the check is over; when it is not, the next two say where to look.</p>
+    </div>
+    <div class="dash">
+      <article class="panel" aria-labelledby="p1-h">
+        <h3 id="p1-h">Error rate</h3>
+        <p class="sub">% of requests, last 24 h</p>
+        <div class="key"><span><i style="background:var(--series-unx)"></i>Unexpected</span><span><i style="background:var(--series-exp)"></i>Expected</span><span><i class="thr"></i>Page threshold</span><span><i class="band"></i>Incident window</span></div>
+        <div class="chart" id="c-err" tabindex="0" role="img" aria-label="Error rate over the last 24 hours. Unexpected errors crossed the 2 percent page threshold once, about 7 hours ago, for 20 minutes. Expected errors stay between 4 and 6 percent."></div>
+        <div class="now"><div>Unexpected now<b id="n-unx">0.21%</b></div><div>Expected now<b id="n-exp">4.9%</b></div></div>
+      </article>
+      <article class="panel" aria-labelledby="p2-h">
+        <h3 id="p2-h">Latency percentiles</h3>
+        <p class="sub">ms, last 24 h, per route</p>
+        <div class="tabs" role="tablist" aria-label="Route">
+          <button role="tab" aria-selected="true" data-route="0">POST /v1/charges</button>
+          <button role="tab" aria-selected="false" data-route="1" tabindex="-1">GET /v1/orders/{id}</button>
+          <button role="tab" aria-selected="false" data-route="2" tabindex="-1">POST /v1/checkout</button>
+        </div>
+        <div class="key"><span><i style="background:var(--pct-50)"></i>p50</span><span><i style="background:var(--pct-95)"></i>p95</span><span><i style="background:var(--pct-99)"></i>p99</span><span><i class="thr"></i>p99 objective</span><span><i class="band"></i>Incident window</span></div>
+        <div class="chart" id="c-lat" tabindex="0" role="img" aria-label="Latency percentiles for the selected route over the last 24 hours."></div>
+        <div class="now"><div>p99 now<b id="n-p99">940 ms</b></div><div>Objective<b id="n-slo">1200 ms</b></div></div>
+      </article>
+      <article class="panel" aria-labelledby="p3-h">
+        <h3 id="p3-h">Traffic per route</h3>
+        <p class="sub">requests per minute, last hour · unexpected per minute at right</p>
+        <div class="chart" id="c-rpm" role="img" aria-label="Requests per minute by route over the last hour."></div>
+        <div class="now"><div>Total<b id="n-rpm">4,253 rpm</b></div><div>Busiest<b>GET /v1/cart</b></div></div>
+      </article>
+    </div>
+    <div class="dashfoot">
+      <p class="synthetic">All chart values are synthetic demonstration data.</p>
+      <p class="synthetic">Built in the dashboard tool you already run.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="alerts" aria-labelledby="alerts-h">
+  <div class="wrap">
+    <div class="intro">
+      <h2 id="alerts-h">Pages for broken, not for busy.</h2>
+      <p>Five rules to start. Each one says who gets told and how, waits long enough to ignore a blip, and links to its runbook section in your guide. Expected errors never page on their own; only a change in their rate earns a message.</p>
+    </div>
+    <ol class="rules">
+      <li class="rule">
+        <span class="dest page"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>PAGE</span>
+        <div><h3>Unexpected error rate</h3><code class="q">sum(rate(http_errors_total{class="unexpected"}[5m]))
+  / sum(rate(http_requests_total[5m])) &gt; 0.02</code></div>
+        <p class="why"><span class="win">for 5 min, on-call pager</span>Real users are hitting a bug right now.<span class="rb">runbook: guide, section 3.1</span></p>
+      </li>
+      <li class="rule">
+        <span class="dest page"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>PAGE</span>
+        <div><h3>Error budget burn</h3><code class="q">burn_rate(slo="availability-99.5", window="1h")  &gt; 14.4
+and burn_rate(slo="availability-99.5", window="5m") &gt; 14.4</code></div>
+        <p class="why"><span class="win">both windows, on-call pager</span>At this pace the month's error budget is gone in about two days.<span class="rb">runbook: guide, section 3.2</span></p>
+      </li>
+      <li class="rule">
+        <span class="dest page"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>PAGE</span>
+        <div><h3>Checkout latency</h3><code class="q">histogram_quantile(0.99, sum by (le) (
+  rate(http_request_duration_seconds_bucket{route="POST /v1/charges"}[10m]))) &gt; 1.2</code></div>
+        <p class="why"><span class="win">for 10 min, on-call pager</span>Slow enough at the 99th percentile to lose orders.<span class="rb">runbook: guide, section 3.3</span></p>
+      </li>
+      <li class="rule">
+        <span class="dest"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>CHAT</span>
+        <div><h3>Expected, but not at this rate</h3><code class="q">rate(http_errors_total{code="card_declined"}[15m])
+  &gt; 3 * avg_over_time(card_declined:rate15m[7d])</code></div>
+        <p class="why"><span class="win">for 15 min, payments channel</span>Declines are normal. Three times the weekly baseline usually means the provider has a problem.<span class="rb">runbook: guide, section 3.4</span></p>
+      </li>
+      <li class="rule struck">
+        <span class="dest never"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg>NEVER</span>
+        <div><h3>Any single 4xx</h3><code class="q">http_errors_total{status=~"4.."}</code></div>
+        <p class="why"><span class="win">no alert, chart only</span>Most 4xx are clients sending bad requests, so a single one never pages. The 4xx that are our bug, like the clock-skew 401, are classified unexpected and page through the first rule.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="scope" aria-labelledby="scope-h">
+  <div class="wrap">
+    <div class="intro stack">
+      <h2 id="scope-h">What gets installed, and what you keep.</h2>
+      <p>A fixed list, built in your repositories through pull requests your team reviews. Nothing runs on our side after handover.</p>
+    </div>
+    <div class="scope">
+      <ul class="manifest">
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Log schema</b><span class="d">One JSON shape for every service: ts, level, service, route, status, duration_ms, request_id, trace_id, span_id, error.class, error.code.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Redaction filter</b><span class="d">Runs inside the logger for each language, with tests, and the list of fields it drops.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Error classification map</b><span class="d">Every error type in your code marked expected or unexpected, reviewed with you, enforced where errors are raised.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Trace propagation</b><span class="d">W3C traceparent across HTTP calls, queues and background jobs, through an OpenTelemetry SDK.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Three dashboards</b><span class="d">Error rate split by class, latency p50, p95 and p99 per route, traffic per route.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>Alert rules</b><span class="d">The five above, tuned to your routes and objectives, each linked to a runbook section.</span></div></div></li>
+        <li class="strip"><div class="cells"><span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg></span><div><b>A short written guide</b><span class="d">How to add a field, classify a new error, silence a noisy rule and change a threshold.</span></div></div></li>
+      </ul>
+      <div class="side">
+        <h3>How it runs</h3>
+        <ol class="steps">
+          <li><span class="when">Call</span><div><b>Map the system</b><span>Your services, where logs go today, and how you heard about your last three incidents.</span></div></li>
+          <li><span class="when">PRs</span><div><b>Build in your repos</b><span>Small pull requests per service. Your team reviews and merges every one.</span></div></li>
+          <li><span class="when">Handover</span><div><b>Walk through it</b><span>The guide, the dashboards and the alert rules, with whoever holds the pager.</span></div></li>
+        </ol>
+        <h3>Works with what you run</h3>
+        <ul class="tools">
+          <li>Structured logger<span>the one for your language</span></li>
+          <li>Tracing<span>OpenTelemetry SDK and collector</span></li>
+          <li>Log store<span>the one you already pay for</span></li>
+          <li>Metrics and dashboards<span>your current tool</span></li>
+          <li>Paging and chat<span>your on-call rotation and team chat</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="book" aria-labelledby="book-h">
+  <div class="wrap">
+    <form class="book" id="bookform" novalidate>
+      <div>
+      <div class="intro stack">
+        <h2 id="book-h">Book a setup.</h2>
+        <p>Tell us what runs in production. Your setup strip fills in as you type: it is the scope we would start the call from.</p>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label for="f-team">Team or company</label>
+          <input type="text" id="f-team" name="team" autocomplete="organization" placeholder="Acme Payments" aria-describedby="e-team">
+          <p class="err" id="e-team" role="alert"></p>
+        </div>
+        <div class="field">
+          <label for="f-email">Work email</label>
+          <input type="email" id="f-email" name="email" autocomplete="email" placeholder="you@company.com" aria-describedby="e-email">
+          <p class="err" id="e-email" role="alert"></p>
+        </div>
+        <div class="field">
+          <span id="svc-l" style="font-size:var(--t-small);font-weight:700">Services in production</span>
+          <div class="stepper" role="group" aria-labelledby="svc-l">
+            <button type="button" id="svc-dec" aria-label="Fewer services"><svg class="ic" aria-hidden="true"><path d="M5 10h10"/></svg></button>
+            <output id="svc" aria-live="polite">4</output>
+            <button type="button" id="svc-inc" aria-label="More services"><svg class="ic" aria-hidden="true"><path d="M5 10h10M10 5v10"/></svg></button>
+          </div>
+          <p class="hint">APIs, workers and scheduled jobs each count as one.</p>
+        </div>
+        <fieldset class="field">
+          <legend>Languages</legend>
+          <div class="chips" id="langs">
+            <label><input type="checkbox" name="lang" value="Go"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Go</span></label>
+            <label><input type="checkbox" name="lang" value="Node.js"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Node.js</span></label>
+            <label><input type="checkbox" name="lang" value="Python"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Python</span></label>
+            <label><input type="checkbox" name="lang" value="Java or Kotlin"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Java or Kotlin</span></label>
+            <label><input type="checkbox" name="lang" value="Ruby"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Ruby</span></label>
+            <label><input type="checkbox" name="lang" value="PHP"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>PHP</span></label>
+            <label><input type="checkbox" name="lang" value=".NET"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>.NET</span></label>
+            <label><input type="checkbox" name="lang" value="Elixir"><span><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>Elixir</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="field wide">
+          <legend>How did you hear about your last incident?</legend>
+          <div class="radios">
+            <label><input type="radio" name="heard" value="customer">A customer told us</label>
+            <label><input type="radio" name="heard" value="alert">An alert fired first</label>
+            <label><input type="radio" name="heard" value="unsure">We are not sure</label>
+          </div>
+        </fieldset>
+      </div>
+      </div>
+
+      <aside class="fplan board on-board" id="fplan" aria-labelledby="fplan-h">
+        <h3 id="fplan-h">Your setup strip</h3>
+        <div class="strip pending" id="fstrip" data-k="tbd">
+          <span class="filed" id="filed">FILED</span>
+          <div class="cells">
+            <span class="holder" id="fs-h">TBD</span>
+            <span class="c-route" id="fs-team">YOUR TEAM</span>
+            <span class="c-status num" id="fs-svc">4 svc</span>
+          </div>
+          <div class="row2"><span id="fs-langs">no language picked</span><span id="fs-heard">heard first: not answered</span></div>
+        </div>
+        <ul class="scopelist" id="scopelist" aria-live="polite"></ul>
+        <p class="fine">We reply by email with times for a mapping call. The work happens through pull requests, so we need repository access, not production access. Your email is used for that reply and nothing else.</p>
+        <button class="btn btn-paper" type="submit">Book a setup <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <p class="status" id="status" role="status"></p>
+      </aside>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot board on-board">
+  <div class="wrap">
+    <div>
+      <a class="mark" href="#top" aria-label="Tamis, back to top">
+        <svg viewBox="0 0 30 20" aria-hidden="true"><rect x="1" y="4" width="28" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.75"/><rect x="1" y="4" width="8" height="12" rx="1.5" fill="currentColor"/><path d="M14 10h11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        Tamis
+      </a>
+      <p class="demo">Portfolio demo. Fictional brand.</p>
+      <p>Every log line, ID, route and chart value on this page is synthetic. Set in B612, a typeface made for cockpit displays, and Red Hat Mono.</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="#split">The split</a>
+      <a href="#request">One request</a>
+      <a href="#dashboards">Dashboards</a>
+      <a href="#alerts">Alerts</a>
+      <a href="#scope">Scope</a>
+      <a href="#book">Book a setup</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s, r = document) => r.querySelector(s);
+  const pad = (n, w = 2) => String(n).padStart(w, '0');
+
+  // seeded random, so the demo looks the same on every load
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  const rnd = mulberry32(20260929);
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const rid = () => 'req_' + Array.from({length: 10}, () => B62[Math.floor(rnd() * 62)]).join('');
+  const hex = n => Array.from({length: n}, () => '0123456789abcdef'[Math.floor(rnd() * 16)]).join('');
+
+  // synthetic stream clock: 2026-09-29 09:44:52 UTC at load, then real seconds
+  const T0 = Date.UTC(2026, 8, 29, 9, 44, 52);
+  const started = performance.now();
+  let pausedAt = null, pausedTotal = 0;
+  const now = () => T0 + ((pausedAt ?? performance.now()) - started - pausedTotal);
+  const hms = t => { const d = new Date(t); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()); };
+
+  const EXP = [
+    {route:'POST /v1/charges', status:402, code:'card_declined', raw:'Payment failed', w:5},
+    {route:'POST /v1/checkout', status:422, code:'validation_failed', raw:'Validation error', w:4},
+    {route:'GET /v1/orders/{id}', status:404, code:'order_not_found', raw:'Not found', w:3},
+    {route:'POST /v1/charges', status:409, code:'idempotency_conflict', raw:'Request failed', w:1},
+    {route:'POST /v1/checkout', status:429, code:'rate_limited', raw:'Too many requests', w:2},
+    {route:'POST /v1/charges', status:402, code:'insufficient_funds', raw:'Payment failed', w:3},
+    {route:'GET /v1/cart', status:401, code:'session_expired', raw:'Unauthorized', w:2}
+  ];
+  const UNX = [
+    {route:'POST /v1/charges', status:504, code:'upstream_timeout', raw:'Payment failed'},
+    {route:'POST /v1/refunds', status:500, code:'null_reference', raw:'Something went wrong'},
+    {route:'GET /v1/orders/{id}', status:503, code:'db_pool_exhausted', raw:'Request failed'},
+    {route:'POST /v1/webhooks/psp', status:401, code:'signature_clock_skew', raw:'Unauthorized'}
+  ];
+  const EXPW = EXP.flatMap(e => Array(e.w).fill(e));
+
+  const rack = $('#rack'), divider = $('#divider'), divtext = $('#divtext');
+  let events = [];
+  const mq700 = matchMedia('(max-width: 700px)');
+  const limits = () => mq700.matches ? {u: 3, x: 1, raw: 4} : {u: 3, x: 2, raw: 5};
+
+  function makeEl(e){
+    const li = document.createElement('li');
+    li.className = 'strip';
+    li.dataset.k = e.k;
+    const holder = e.k === 'unx'
+      ? '<span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX</span>'
+      : '<span class="holder"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP</span>';
+    const trace = e.featured
+      ? `<a class="c-trace" href="#request" title="Open this request's log line and trace">${e.trace.slice(0, 12)}…</a>`
+      : `<span class="c-trace">${e.trace.slice(0, 12)}…</span>`;
+    li.innerHTML = `<div class="cells">${holder}<span class="c-time num">${hms(e.t)}<span class="ms">.${pad(new Date(e.t).getUTCMilliseconds(), 3)}</span></span><span class="c-route">${e.route}</span><span class="c-status num">${e.status}</span><span class="c-code">${e.code}</span><span class="c-req">${e.req}</span>${trace}</div>`
+      + `<p class="raw">${new Date(e.t).toISOString().slice(0, 10)} ${hms(e.t)} <b>ERROR</b> ${e.raw}</p>`;
+    const sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.textContent = `${e.k === 'unx' ? 'Unexpected' : 'Expected'} error, ${e.code}, ${e.status}, ${e.route}. `;
+    li.append(sr);
+    e.el = li;
+    return li;
+  }
+
+  function addEvent(e){
+    events.push(e);
+    rack.appendChild(makeEl(e));
+  }
+
+  function layout(){
+    const mode = rack.dataset.mode, L = limits();
+    const byTime = [...events].sort((a, b) => b.t - a.t);
+    let vis;
+    if (mode === 'raw'){
+      vis = byTime.slice(0, L.raw);
+      vis.forEach((e, i) => { e.order = i; e.age = 0; });
+      divider.hidden = false; divider.style.order = -1;
+      divtext.textContent = 'Raw lines, the way most teams read them today';
+    } else {
+      const u = byTime.filter(e => e.k === 'unx').slice(0, L.u);
+      const x = byTime.filter(e => e.k === 'exp').slice(0, L.x);
+      u.forEach((e, i) => { e.order = i; e.age = 0; });
+      x.forEach((e, i) => { e.order = 10 + i; e.age = i + 1; });
+      divider.hidden = false; divider.style.order = 5;
+      divtext.textContent = 'Expected below: counted, nobody paged';
+      vis = [...u, ...x];
+    }
+    const keep = new Set([
+      ...byTime.slice(0, L.raw),
+      ...byTime.filter(e => e.k === 'unx').slice(0, L.u),
+      ...byTime.filter(e => e.k === 'exp').slice(0, L.x)
+    ]);
+    const shown = new Set(vis);
+    events = events.filter(e => { if (!keep.has(e)){ e.el.remove(); return false; } return true; });
+    for (const e of events){
+      e.el.hidden = !shown.has(e);
+      e.el.style.order = e.order ?? 99;
+      e.el.dataset.age = e.age ?? 0;
+    }
+  }
+
+  function flip(mutate, entering){
+    const before = new Map();
+    for (const li of rack.children) if (!li.hidden) before.set(li, li.getBoundingClientRect());
+    mutate();
+    if (reduce) return;
+    for (const li of rack.children){
+      if (li.hidden) continue;
+      const a = before.get(li), b = li.getBoundingClientRect();
+      if (a){
+        const dy = a.top - b.top;
+        if (Math.abs(dy) > 0.5) li.animate([{transform: `translateY(${dy}px)`}, {transform: 'none'}], {duration: entering ? 520 : 760, easing: entering ? 'cubic-bezier(0.16,1,0.3,1)' : 'cubic-bezier(0.65,0,0.35,1)'});
+      } else if (li !== divider){
+        li.animate([{opacity: 0, transform: 'translateY(-12px)', filter: 'blur(6px)'}, {opacity: 1, transform: 'none', filter: 'blur(0)'}], {duration: 520, easing: 'cubic-bezier(0.16,1,0.3,1)'});
+      }
+    }
+  }
+
+  // ---------- histogram (60 buckets of 15 s) ----------
+  const barsEl = $('#bars'), callout = $('#callout');
+  const N = 60, BUCKET = 15000;
+  let bucketStart = Math.floor(T0 / BUCKET) * BUCKET - (N - 1) * BUCKET; // first bucket start
+  let buckets = Array.from({length: N}, (_, i) => ({t: bucketStart + i * BUCKET, x: 2 + Math.floor(rnd() * 5), u: 0}));
+  const spikeT = Date.UTC(2026, 8, 29, 9, 41, 0);
+  const bIndex = t => Math.floor((t - buckets[0].t) / BUCKET);
+  function renderBars(){
+    const unit = 34 / Math.max(6, ...buckets.map(b => b.x));
+    barsEl.innerHTML = buckets.map((b, i) => `<span class="bar${b.u ? ' hot' : ''}" data-i="${i}"><span class="up"><i style="height:${(b.x * unit).toFixed(1)}px"></i></span><span class="dn">${b.u ? `<i style="height:${Math.min(16, b.u * unit).toFixed(1)}px"></i>` : ''}</span></span>`).join('');
+    const axis = $('#axis').children;
+    for (let k = 0; k < 4; k++){ const t = buckets[0].t + k * (N * BUCKET) / 3; axis[k].textContent = hms(t).slice(0, 5); }
+    axis[3].textContent = 'now';
+    placeCallout();
+    $('#t-exp').textContent = buckets.reduce((s, b) => s + b.x, 0);
+    $('#t-unx').textContent = buckets.reduce((s, b) => s + b.u, 0);
+  }
+  let hoverI = null;
+  function placeCallout(){
+    let i = hoverI;
+    let tip = true;
+    if (i == null){
+      tip = false;
+      i = -1; let best = 0;
+      buckets.forEach((b, k) => { if (b.u >= best && b.u > 0){ best = b.u; i = k; } });
+    }
+    if (i < 0){ callout.style.display = 'none'; return; }
+    const b = buckets[i];
+    callout.style.display = '';
+    callout.classList.toggle('tip', tip);
+    callout.innerHTML = tip
+      ? `${hms(b.t)} · <b>${b.u} unexpected</b> · ${b.x} expected`
+      : `${hms(b.t).slice(0, 5)} · <b>${b.u} unexpected</b> · 2 error codes`;
+    const w = barsEl.clientWidth, cw = callout.offsetWidth, off = barsEl.offsetLeft;
+    let x = (i + 0.5) / N * w;
+    x = Math.max(cw / 2, Math.min(w - cw / 2, x));
+    callout.style.left = (off + x) + 'px';
+  }
+  barsEl.addEventListener('pointermove', ev => {
+    const r = barsEl.getBoundingClientRect();
+    hoverI = Math.max(0, Math.min(N - 1, Math.floor((ev.clientX - r.left) / r.width * N)));
+    placeCallout();
+  });
+  barsEl.addEventListener('pointerleave', () => { hoverI = null; placeCallout(); });
+  barsEl.addEventListener('keydown', ev => {
+    if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight'){
+      ev.preventDefault();
+      hoverI = Math.max(0, Math.min(N - 1, (hoverI ?? N - 1) + (ev.key === 'ArrowLeft' ? -1 : 1)));
+      placeCallout();
+    }
+    if (ev.key === 'Escape'){ hoverI = null; placeCallout(); }
+  });
+  barsEl.addEventListener('blur', () => { hoverI = null; placeCallout(); });
+
+  // ---------- seed the stream ----------
+  const spikeEvents = [
+    {k: 'unx', t: Date.UTC(2026, 8, 29, 9, 41, 5, 118), ...UNX[2]},
+    {k: 'unx', t: Date.UTC(2026, 8, 29, 9, 41, 6, 402), ...UNX[0]},
+    {k: 'unx', t: Date.UTC(2026, 8, 29, 9, 41, 7, 312), ...UNX[0], featured: true, req: 'req_7Hq2kLx9Pw', trace: '4bf92f3577b34da6a3ce929d0e0e4736'}
+  ];
+  spikeEvents.forEach(e => { e.req ??= rid(); e.trace ??= hex(32); const i = bIndex(e.t); if (i >= 0 && i < N) buckets[i].u++; });
+  const seedExp = [];
+  let t = T0 - 1800;
+  for (let k = 0; k < 6; k++){ const tpl = pick(EXPW); seedExp.push({k: 'exp', t, ...tpl, req: rid(), trace: hex(32)}); t -= 2600 + Math.floor(rnd() * 2400); }
+  [...seedExp.reverse(), ...spikeEvents].sort((a, b) => a.t - b.t).forEach(addEvent);
+  layout();
+  renderBars();
+
+  // ---------- live ticking ----------
+  const liveBtn = $('#live');
+  let live = !reduce, timer = null;
+  function setLiveUI(){
+    liveBtn.setAttribute('aria-pressed', String(live));
+    liveBtn.innerHTML = `<svg class="ic" aria-hidden="true"><use href="#i-${live ? 'pause' : 'play'}"/></svg><span>${live ? 'Live' : 'Paused'}</span>`;
+    liveBtn.setAttribute('aria-label', live ? 'Pause the demo stream' : 'Resume the demo stream');
+  }
+  function tick(){
+    const tt = now();
+    // roll buckets forward
+    while (tt >= buckets[N - 1].t + BUCKET){
+      buckets.shift();
+      buckets.push({t: buckets[N - 2].t + BUCKET, x: 0, u: 0});
+    }
+    const isU = rnd() < 0.1;
+    const tpl = isU ? pick(UNX) : pick(EXPW);
+    const e = {k: isU ? 'unx' : 'exp', t: tt, ...tpl, req: rid(), trace: hex(32)};
+    buckets[N - 1][isU ? 'u' : 'x']++;
+    flip(() => { addEvent(e); layout(); }, true);
+    renderBars();
+  }
+  function schedule(){
+    clearTimeout(timer);
+    if (!live) return;
+    timer = setTimeout(() => { if (!document.hidden) tick(); schedule(); }, 2600 + Math.floor(Math.random() * 1400));
+  }
+  liveBtn.addEventListener('click', () => {
+    live = !live;
+    if (live){ if (pausedAt != null){ pausedTotal += performance.now() - pausedAt; pausedAt = null; } }
+    else pausedAt = performance.now();
+    setLiveUI(); schedule();
+  });
+  if (reduce) pausedAt = performance.now();
+  setLiveUI(); schedule();
+  setInterval(() => { $('#clock').textContent = hms(now()); }, 1000);
+  $('#clock').textContent = hms(now());
+
+  let touched = false;
+  const siftRadios = [...document.querySelectorAll('input[name="sift"]')];
+  const setMode = (m, animate) => {
+    siftRadios.forEach(x => { x.checked = x.value === m; });
+    if (animate) flip(() => { rack.dataset.mode = m; layout(); }, false);
+    else { rack.dataset.mode = m; layout(); }
+  };
+  siftRadios.forEach(r => r.addEventListener('change', () => { touched = true; setMode(r.value, true); }));
+  if (reduce) setMode('sifted', false);
+  else {
+    const auto = () => setTimeout(() => { if (!touched && scrollY < innerHeight * 0.6) setMode('sifted', true); }, 1600);
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(auto);
+  }
+  mq700.addEventListener('change', () => layout());
+  addEventListener('resize', () => placeCallout());
+
+  // ---------- trace waterfall: deadline marker at 2000 of 2010 ms ----------
+  const dl = $('#deadline'), spans = $('#spans');
+  function placeDeadline(){
+    const tr = spans.querySelector('.track');
+    dl.style.left = (tr.offsetLeft + tr.offsetWidth * (2000 / 2010)) + 'px';
+    spans.querySelectorAll('.gl').forEach((g, k) => { g.style.left = (tr.offsetLeft + tr.offsetWidth * ((k + 1) * 500 / 2010)) + 'px'; });
+  }
+  placeDeadline(); addEventListener('resize', placeDeadline);
+
+  // ---------- charts ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a = {}) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const PTS = 96; // 15-min points over 24 h
+  const r2 = mulberry32(7);
+  const errU = Array.from({length: PTS}, (_, i) => {
+    let v = 0.12 + r2() * 0.18;
+    if (i >= 67 && i <= 69) v = [1.4, 2.6, 2.3][i - 67];
+    if (i === 70) v = 0.9;
+    if (i === PTS - 1) v = 0.21;
+    return v;
+  });
+  const errX = Array.from({length: PTS}, (_, i) => 4.6 + Math.sin(i / PTS * Math.PI * 2 - 1) * 0.7 + (r2() - 0.5) * 0.5);
+  errX[PTS - 1] = 4.9;
+  const routes = [
+    {name: 'POST /v1/charges', slo: 1200, base: [180, 520, 820]},
+    {name: 'GET /v1/orders/{id}', slo: 500, base: [38, 140, 290]},
+    {name: 'POST /v1/checkout', slo: 900, base: [120, 360, 610]}
+  ];
+  routes.forEach((r, ri) => {
+    const rr = mulberry32(100 + ri);
+    r.series = r.base.map((b, k) => Array.from({length: PTS}, (_, i) => {
+      const load = 1 + 0.18 * Math.sin(i / PTS * Math.PI * 2 - 1);
+      let v = b * load * (0.92 + rr() * 0.16);
+      if (ri === 0 && i >= 67 && i <= 69) v *= [1.25, 1.6, 1.45][i - 67] * (k === 2 ? 1.15 : 1);
+      return Math.round(v);
+    }));
+    r.series[2][PTS - 1] = ri === 0 ? 940 : r.series[2][PTS - 1];
+  });
+  const rpm = [
+    {r: 'GET /v1/cart', v: 1940, u: 0}, {r: 'GET /v1/orders/{id}', v: 1180, u: 0.3}, {r: 'POST /v1/charges', v: 412, u: 0.8},
+    {r: 'POST /v1/checkout', v: 386, u: 0.1}, {r: 'POST /v1/webhooks/psp', v: 297, u: 0.4}, {r: 'POST /v1/refunds', v: 38, u: 0.2}
+  ];
+  const hoursAgo = i => { const h = (PTS - 1 - i) / 4; return h === 0 ? 'now' : (h < 1 ? Math.round(h * 60) + ' min ago' : (Number.isInteger(h) ? h : h.toFixed(2).replace(/0$/, '')) + ' h ago'); };
+
+  function lineChart(host, cfg){
+    // cfg: rows: [{h, max, ticks, series:[{v, color, w, label}], thr:{v,label}}]
+    host.innerHTML = '';
+    const W = host.clientWidth, padL = 40, padR = 56;
+    let H = 0; cfg.rows.forEach(r => H += r.h + (r.title ? 40 : 18)); H += 16;
+    const svg = el('svg', {viewBox: `0 0 ${W} ${H}`, height: H, 'aria-hidden': 'true'});
+    const x = i => padL + i / (PTS - 1) * (W - padL - padR);
+    if (cfg.band){ svg.append(el('rect', {x: x(cfg.band[0]), y: 0, width: x(cfg.band[1]) - x(cfg.band[0]), height: H - 18, fill: 'var(--signal-wash)', stroke: 'var(--signal-rule)', 'stroke-width': 1})); }
+    let y0 = 8;
+    const rowsGeo = [];
+    cfg.rows.forEach(row => {
+      if (row.title){ const tl = el('text', {x: padL, y: y0 + 4, class: 'lab'}); tl.textContent = row.title; svg.append(tl); y0 += 18; }
+      const y = v => y0 + row.h - v / row.max * row.h;
+      row.ticks.forEach(tv => {
+        svg.append(el('line', {x1: padL, x2: W - padR, y1: y(tv), y2: y(tv), stroke: 'var(--grid)', 'stroke-width': 1}));
+        const tx = el('text', {x: padL - 6, y: y(tv) + 4, 'text-anchor': 'end'}); tx.textContent = row.fmt(tv); svg.append(tx);
+      });
+      if (row.thr){
+        svg.append(el('line', {x1: padL, x2: W - padR, y1: y(row.thr.v), y2: y(row.thr.v), stroke: 'var(--signal-ink)', 'stroke-width': 1.5, 'stroke-dasharray': '5 4'}));
+      }
+      row.series.forEach(s => {
+        const d = s.v.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join('');
+        if (s.area){ svg.append(el('path', {d: d + `L${x(PTS - 1)} ${y0 + row.h}L${x(0)} ${y0 + row.h}Z`, fill: s.color, opacity: 0.1})); }
+        svg.append(el('path', {d, fill: 'none', stroke: s.color, 'stroke-width': s.w || 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round'}));
+        const lx = x(PTS - 1), ly = y(s.v[PTS - 1]);
+        svg.append(el('circle', {cx: lx, cy: ly, r: 4, fill: s.color, stroke: 'var(--paper)', 'stroke-width': 2}));
+        if (s.label){ const t = el('text', {x: lx + 8, y: ly + (s.dy || 0) + 4, class: 'lab'}); t.textContent = s.label; svg.append(t); }
+      });
+      rowsGeo.push({y, row, top: y0});
+      y0 += row.h + (row.title ? 22 : 18);
+    });
+    // x labels
+    [[0, '-24 h'], [48, '-12 h'], [PTS - 1, 'now']].forEach(([i, s]) => {
+      const t = el('text', {x: x(i), y: H - 2, 'text-anchor': i === 0 ? 'start' : (i === PTS - 1 ? 'end' : 'middle')}); t.textContent = s; svg.append(t);
+    });
+    // hover layer
+    const cross = el('line', {x1: 0, x2: 0, y1: 4, y2: H - 16, stroke: 'var(--ink-3)', 'stroke-width': 1, opacity: 0});
+    svg.append(cross);
+    const dots = [];
+    rowsGeo.forEach(g => g.row.series.forEach(s => { const c = el('circle', {r: 4, fill: s.color, stroke: 'var(--paper)', 'stroke-width': 2, opacity: 0}); svg.append(c); dots.push({c, s, g}); }));
+    host.append(svg);
+    const tt = document.createElement('div'); tt.className = 'tt'; host.append(tt);
+    let cur = null;
+    const show = i => {
+      cur = i;
+      const cx = x(i);
+      cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.setAttribute('opacity', 1);
+      dots.forEach(({c, s, g}) => { c.setAttribute('cx', cx); c.setAttribute('cy', g.y(s.v[i])); c.setAttribute('opacity', 1); });
+      tt.innerHTML = `<b>${hoursAgo(i)}${cfg.band && i >= cfg.band[0] && i <= cfg.band[1] ? ', incident window' : ''}</b><br>` + dots.map(({s, g}) => `<i style="background:${s.color}"></i>${s.name} ${g.row.fmtV(s.v[i])}`).join('<br>');
+      tt.classList.add('on');
+      const tw = tt.offsetWidth;
+      tt.style.left = Math.max(0, Math.min(W - tw, cx + (cx > W / 2 ? -tw - 12 : 12))) + 'px';
+      tt.style.top = '4px';
+    };
+    const hide = () => { cur = null; cross.setAttribute('opacity', 0); dots.forEach(d => d.c.setAttribute('opacity', 0)); tt.classList.remove('on'); };
+    host.onpointermove = ev => { const r = svg.getBoundingClientRect(); const i = Math.round((ev.clientX - r.left - padL) / (W - padL - padR) * (PTS - 1)); show(Math.max(0, Math.min(PTS - 1, i))); };
+    host.onpointerleave = hide;
+    host.onblur = hide;
+    host.onkeydown = ev => {
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight'){ ev.preventDefault(); show(Math.max(0, Math.min(PTS - 1, (cur ?? PTS - 1) + (ev.key === 'ArrowLeft' ? -1 : 1)))); }
+      if (ev.key === 'Escape') hide();
+    };
+  }
+
+  function drawErr(){
+    const big = !matchMedia('(max-width: 1180px)').matches;
+    lineChart($('#c-err'), {band: [67, 70], rows: [
+      {title: 'Unexpected', h: big ? 118 : 84, max: 3, ticks: [0, 1, 2, 3], fmt: v => v + '%', fmtV: v => v.toFixed(2) + '%', thr: {v: 2},
+        series: [{v: errU, color: 'var(--series-unx)', name: 'unexpected', label: '0.21%', area: true}]},
+      {title: 'Expected', h: big ? 84 : 64, max: 8, ticks: [0, 4, 8], fmt: v => v + '%', fmtV: v => v.toFixed(1) + '%',
+        series: [{v: errX, color: 'var(--series-exp)', name: 'expected', label: '4.9%', area: true}]}
+    ]});
+  }
+  let routeI = 0;
+  function drawLat(){
+    const r = routes[routeI];
+    const max = Math.ceil(Math.max(r.slo * 1.15, ...r.series[2]) / 250) * 250;
+    const step = max > 1000 ? 500 : 250;
+    const ticks = []; for (let v = 0; v <= max; v += step) ticks.push(v);
+    lineChart($('#c-lat'), {band: [67, 70], rows: [
+      {h: 182, max, ticks, fmt: v => v >= 1000 ? (v / 1000) + 's' : v, fmtV: v => v + ' ms', thr: {v: r.slo},
+        series: [
+          {v: r.series[0], color: 'var(--pct-50)', name: 'p50', label: 'p50'},
+          {v: r.series[1], color: 'var(--pct-95)', name: 'p95', label: 'p95'},
+          {v: r.series[2], color: 'var(--pct-99)', name: 'p99', label: 'p99', w: 2.5}
+        ]}
+    ]});
+    $('#n-p99').textContent = r.series[2][PTS - 1].toLocaleString('en-US') + ' ms';
+    $('#n-slo').textContent = r.slo.toLocaleString('en-US') + ' ms';
+    $('#c-lat').setAttribute('aria-label', `Latency percentiles for ${r.name} over the last 24 hours. p99 now ${r.series[2][PTS - 1]} ms against an objective of ${r.slo} ms.`);
+  }
+  function drawRpm(){
+    const host = $('#c-rpm'); host.innerHTML = '';
+    const W = host.clientWidth, stacked = W < 440;
+    const labW = stacked ? 0 : 190, bar = 14, rowH = stacked ? 44 : 34, H = rpm.length * rowH;
+    const max = 2000, uCol = 64, room = W - labW - 56 - uCol;
+    const svg = el('svg', {viewBox: `0 0 ${W} ${H}`, height: H, 'aria-hidden': 'true'});
+    const tt = document.createElement('div'); tt.className = 'tt';
+    rpm.forEach((d, i) => {
+      const top = i * rowH;
+      const y = stacked ? top + 20 : top + (rowH - bar) / 2;
+      const w = d.v / max * room;
+      const t = el('text', {x: 0, y: stacked ? top + 13 : y + bar - 2}); t.textContent = d.r; t.setAttribute('style', 'fill:var(--ink-2)'); svg.append(t);
+      svg.append(el('line', {x1: labW, x2: labW, y1: stacked ? top + 18 : top, y2: stacked ? top + 20 + bar + 2 : top + rowH, stroke: 'var(--rule)', 'stroke-width': 1}));
+      svg.append(el('path', {d: `M${labW} ${y}h${Math.max(0, w - 4)}a4 4 0 0 1 4 4v${bar - 8}a4 4 0 0 1 -4 4h${-Math.max(0, w - 4)}Z`, fill: 'var(--series-exp)'}));
+      const v = el('text', {x: labW + w + 6, y: y + bar - 2, class: 'lab'}); v.textContent = d.v.toLocaleString('en-US'); svg.append(v);
+      const ux = W - uCol + 14, uy = y + bar / 2;
+      if (d.u > 0){ svg.append(el('rect', {x: ux, y: uy - 4, width: 8, height: 8, rx: 1, fill: 'var(--series-unx)'})); }
+      const ut = el('text', {x: ux + 14, y: uy + 4}); ut.textContent = d.u > 0 ? d.u.toFixed(1) : '0'; ut.setAttribute('style', 'fill:var(--ink-2)'); svg.append(ut);
+      const hit = el('rect', {x: 0, y: top, width: W, height: rowH, fill: 'transparent'});
+      hit.addEventListener('pointerenter', () => { tt.innerHTML = `<b>${d.r}</b><br>${d.v.toLocaleString('en-US')} requests per minute<br>${d.u.toFixed(1)} unexpected errors per minute`; tt.classList.add('on'); tt.style.left = Math.max(0, Math.min(W - 210, labW + w * 0.5)) + 'px'; tt.style.top = (top - 44) + 'px'; });
+      hit.addEventListener('pointerleave', () => tt.classList.remove('on'));
+      svg.append(hit);
+    });
+    host.append(svg, tt);
+  }
+  function drawAll(){ drawErr(); drawLat(); drawRpm(); }
+  drawAll();
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 120); });
+  document.fonts && document.fonts.ready.then(() => { drawAll(); placeCallout(); placeDeadline(); });
+
+  const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
+  function selectTab(k){
+    tabs.forEach((b, j) => { b.setAttribute('aria-selected', String(j === k)); b.tabIndex = j === k ? 0 : -1; });
+    routeI = k; drawLat();
+  }
+  tabs.forEach((b, k) => {
+    b.addEventListener('click', () => selectTab(k));
+    b.addEventListener('keydown', ev => {
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft'){
+        ev.preventDefault();
+        const n = (k + (ev.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+        tabs[n].focus(); selectTab(n);
+      }
+    });
+  });
+
+  // ---------- mobile menu ----------
+  const mb = $('#menubtn'), mn = $('#mnav');
+  const setMenu = open => { mb.setAttribute('aria-expanded', String(open)); mn.hidden = !open; };
+  mb.addEventListener('click', () => setMenu(mn.hidden));
+  mn.addEventListener('click', ev => { if (ev.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !mn.hidden){ setMenu(false); mb.focus(); } });
+  document.addEventListener('click', ev => { if (!mn.hidden && !ev.target.closest('.menu')) setMenu(false); });
+
+  // ---------- booking strip ----------
+  const form = $('#bookform');
+  let svc = 4;
+  const svcOut = $('#svc'), dec = $('#svc-dec'), inc = $('#svc-inc');
+  function updateStrip(){
+    const team = form.team.value.trim();
+    const langs = [...form.querySelectorAll('input[name="lang"]:checked')].map(i => i.value);
+    const hr = form.querySelector('input[name="heard"]:checked');
+    const heard = hr ? hr.value : 'none';
+    svcOut.textContent = svc; dec.disabled = svc <= 1; inc.disabled = svc >= 40;
+    $('#fs-team').textContent = team ? team.toUpperCase() : 'YOUR TEAM';
+    $('#fs-svc').textContent = svc + ' svc';
+    $('#fs-langs').textContent = langs.length ? langs.join(', ') : 'no language picked';
+    const strip = $('#fstrip'), h = $('#fs-h');
+    strip.classList.toggle('pending', heard === 'unsure' || heard === 'none');
+    strip.dataset.k = heard === 'customer' ? 'unx' : (heard === 'alert' ? 'exp' : 'tbd');
+    h.innerHTML = heard === 'customer' ? '<svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>UNX' : (heard === 'alert' ? '<svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>EXP' : 'TBD');
+    $('#fs-heard').textContent = {customer: 'heard first: a customer', alert: 'heard first: an alert', unsure: 'heard first: not sure', none: 'heard first: not answered'}[heard];
+    const L = Math.max(1, langs.length);
+    const items = [
+      `${svc} service${svc > 1 ? 's' : ''} on one JSON log schema`,
+      `Redaction filter for ${langs.length ? langs.length + ' language' + (langs.length > 1 ? 's' : '') : 'each language'}, with tests`,
+      `Classification map across ${svc} service${svc > 1 ? 's' : ''}`,
+      `Trace propagation across ${svc > 1 ? 'all ' + svc + ' services' : 'the service'}`,
+      '3 dashboards, 5 alert rules with runbooks',
+      'Written guide and handover walkthrough'
+    ];
+    $('#scopelist').innerHTML = items.map(s => `<li><svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg><span>${s}</span></li>`).join('');
+    return L;
+  }
+  dec.addEventListener('click', () => { svc = Math.max(1, svc - 1); updateStrip(); });
+  inc.addEventListener('click', () => { svc = Math.min(40, svc + 1); updateStrip(); });
+  const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  form.addEventListener('input', ev => {
+    $('#fplan').classList.remove('done'); $('#status').textContent = '';
+    if (ev.target === form.team && form.team.value.trim()) setErr(form.team, '');
+    if (ev.target === form.email && emailOk(form.email.value.trim())) setErr(form.email, '');
+    updateStrip();
+  });
+  form.addEventListener('change', updateStrip);
+  function setErr(input, msg){
+    const e = $('#e-' + input.name);
+    e.textContent = msg;
+    input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  form.team.addEventListener('blur', () => { if (form.team.value.trim()) setErr(form.team, ''); });
+  form.email.addEventListener('blur', () => { if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim())) setErr(form.email, ''); });
+  form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    let bad = null;
+    if (!form.team.value.trim()){ setErr(form.team, 'Add a team or company name so the strip has a callsign.'); bad = bad || form.team; } else setErr(form.team, '');
+    const em = form.email.value.trim();
+    if (!em){ setErr(form.email, 'Add a work email so we can send the call invite.'); bad = bad || form.email; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ setErr(form.email, 'That email is missing a part: it should look like name@company.com.'); bad = bad || form.email; }
+    else setErr(form.email, '');
+    if (bad){ bad.focus(); const n = form.querySelectorAll('[aria-invalid="true"]').length; $('#status').textContent = (n > 1 ? 'Two fields need' : 'One field needs') + ' a look before the strip can be filed.'; return; }
+    $('#filed').textContent = 'FILED ' + hms(now()) + 'Z';
+    $('#fplan').classList.add('done');
+    const st = $('#fstrip'); st.classList.remove('pending'); st.dataset.k = 'set';
+    $('#fs-h').innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-tick"/></svg>SET';
+    $('#status').textContent = 'Request filed and seated in the rack. This is a portfolio demo, so nothing was sent anywhere.';
+  });
+  updateStrip();
+})();
+</script>
+</body>
+</html>

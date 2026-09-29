@@ -1,0 +1,1374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rowcrop: public web data, delivered as clean tables</title>
+<meta name="description" content="Name a public website and the columns you need. Rowcrop sends a free sample, then clean, deduplicated rows as CSV, Excel, Google Sheets or straight into your database, once or on a schedule.">
+<meta name="theme-color" content="#0E4760">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230E4760'/%3E%3Crect x='3' y='4' width='10' height='2.5' fill='%23FAFCFC'/%3E%3Crect x='3' y='9.5' width='10' height='2.5' fill='%23E1EEF3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..700&family=Sofia+Sans+Extra+Condensed:wght@600..900&family=Sofia+Sans:wght@400..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* color */
+  --paper: #FAFCFC;
+  --band: #E1EEF3;
+  --band-2: #CFE3EB;
+  --form: #0E4760;
+  --form-2: #2F6A80;
+  --rule: #9CC0CE;
+  --ink: #111416;
+  --ink-soft: #34505B;
+  --red: #B42318;
+  --red-wash: #FBE4E1;
+  --hole: #0B2F3F;
+  --on-form: #FAFCFC;
+  --form-band: #155670;
+
+  /* faces */
+  --font-display: "Sofia Sans Extra Condensed", "Arial Narrow", sans-serif;
+  --font-text: "Sofia Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, Menlo, monospace;
+
+  /* type scale */
+  --t-display: clamp(2.75rem, calc((100vw - 144px) / 13.4), 6rem);
+  --t-headline: clamp(2.5rem, 1.4rem + 3.2vw, 4.5rem);
+  --t-title: clamp(1.625rem, 1.3rem + .9vw, 2.125rem);
+  --t-lede: clamp(1.0625rem, .98rem + .35vw, 1.25rem);
+  --t-body: 1.0625rem;
+  --t-small: .9375rem;
+  --t-label: .75rem;
+  --t-ui: 1rem;
+  --t-data: .875rem;
+  --t-data-sub: .75rem;
+  --t-code: .8125rem;
+  --t-micro: .75rem;
+  --wdth-data: 87.5;
+
+  /* space */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 128px;
+
+  /* sizes */
+  --paper-max: 1600px;
+  --tractor: 40px;
+  --hole-d: 10px;
+  --hole-pitch: 36px;
+  --pad: clamp(16px, 2.2vw, 32px);
+  --gap: 24px;
+  --row: 56px;
+  --row-head: 40px;
+  --nav-h: 56px;
+  --lift-inset: 6px;
+  --marker: 18px;
+
+  /* shape */
+  --r-0: 0;
+  --r-round: 50%;
+  --bw-hair: 1px;
+  --bw-strong: 2px;
+  --bw-edge: 1.5px;
+  --sh-lift: 0 10px 24px -8px rgb(0 0 0 / .3), 0 2px 6px rgb(0 0 0 / .12);
+
+  /* motion */
+  --t-fast: 120ms;
+  --t-base: 220ms;
+  --t-slow: 420ms;
+  --t-line: 110ms;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-io: cubic-bezier(.65, 0, .35, 1);
+}
+
+@media (max-width: 699px) {
+  :root {
+    --tractor: 20px;
+    --hole-d: 8px;
+    --hole-pitch: 24px;
+    --gap: 16px;
+    --row: 52px;
+    --nav-h: 48px;
+    --t-data: .8125rem;
+    --wdth-data: 75;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  background: var(--hole);
+  scrollbar-color: var(--form) var(--band);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0 auto;
+  max-width: var(--paper-max);
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 var(--t-body)/1.6 var(--font-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  caret-color: var(--form);
+}
+::selection { background: var(--form); color: var(--on-form); }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--band); }
+::-webkit-scrollbar-thumb { background: var(--form); border: 3px solid var(--band); }
+:focus-visible { outline: 3px solid var(--form); outline-offset: 2px; }
+a { color: var(--form); text-underline-offset: 3px; text-decoration-thickness: var(--bw-hair); }
+h1, h2, h3, p, dl, dd, figure { margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; stroke-linejoin: miter; }
+
+/* ---------- the sheet: continuous-form paper with tractor strips ---------- */
+.sheet {
+  position: relative;
+  background: var(--paper);
+  padding: 0 calc(var(--tractor) + var(--pad));
+  overflow-x: clip;
+}
+.sheet::before, .sheet::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: var(--tractor);
+  background-image: radial-gradient(circle at 50% 50%, var(--hole) calc(var(--hole-d) / 2 - .5px), transparent calc(var(--hole-d) / 2));
+  background-size: var(--tractor) var(--hole-pitch);
+  background-position: 0 0;
+  pointer-events: none;
+}
+.sheet::before { left: 0; border-right: var(--bw-hair) dashed var(--rule); }
+.sheet::after { right: 0; border-left: var(--bw-hair) dashed var(--rule); }
+
+.skip {
+  position: absolute; left: calc(var(--tractor) + var(--pad)); top: var(--s-2); z-index: 10;
+  padding: var(--s-2) var(--s-4); background: var(--form); color: var(--on-form);
+  font: 700 var(--t-ui)/1.2 var(--font-text); transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+
+/* ---------- nav as a row of cells ---------- */
+.nav {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--nav-h);
+  margin: 0 calc(var(--pad) * -1);
+  border-bottom: var(--bw-hair) solid var(--rule);
+}
+.cell {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: 0 var(--s-5);
+  border-left: var(--bw-hair) solid var(--rule);
+  color: var(--form);
+  font: 700 var(--t-ui)/1.2 var(--font-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+.cell:hover { background: var(--band); }
+.cell:focus-visible { outline-offset: -3px; }
+.nav__brand {
+  border-left: 0;
+  padding-left: var(--pad);
+  margin-right: auto;
+  gap: var(--s-3);
+  font: 800 1.625rem/1 var(--font-display);
+  letter-spacing: .01em;
+}
+.nav__brand .i { width: 22px; height: 22px; }
+.nav__links { display: flex; align-items: stretch; }
+.nav__sample { padding-right: var(--pad); }
+
+/* ---------- hero: the job printout ---------- */
+.job { padding: var(--s-6) 0 var(--s-7); }
+.job__title {
+  padding: var(--s-4) 0 var(--s-3);
+  border-top: var(--bw-strong) solid var(--form);
+  color: var(--form);
+  font: 800 var(--t-display)/.92 var(--font-display);
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+.job__title .l { display: inline; }
+.job__title mark {
+  display: inline-block;
+  line-height: .9;
+  background: var(--band);
+  color: var(--ink);
+  padding: .05em .07em .04em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.job__head {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  border-top: var(--bw-hair) solid var(--rule);
+}
+.job__lede {
+  padding: var(--s-4) var(--s-6) var(--s-4) 0;
+  max-width: 64ch;
+  font-size: var(--t-lede);
+  line-height: 1.5;
+}
+.job__params {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: center;
+  column-gap: var(--s-4);
+  row-gap: var(--s-1);
+  padding: var(--s-4) 0 var(--s-4) var(--s-5);
+  border-left: var(--bw-hair) solid var(--rule);
+  font: 450 var(--t-micro)/1.5 var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+}
+.job__params dt { color: var(--form-2); text-transform: uppercase; letter-spacing: .04em; }
+.job__params dd { color: var(--ink); }
+.job__bar {
+  display: flex;
+  align-items: stretch;
+  border-top: var(--bw-hair) solid var(--rule);
+}
+.job__counts {
+  flex: 1 1 auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-5);
+  padding: var(--s-3) var(--s-4) var(--s-3) 0;
+  font: 450 var(--t-data-sub)/1.4 var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+  font-variant-numeric: tabular-nums;
+  color: var(--form-2);
+}
+.job__counts b { color: var(--ink); font-weight: 600; }
+.job__counts .chgc b { color: var(--red); }
+
+.seg {
+  display: flex; align-items: center; gap: var(--s-1);
+  padding: 0 var(--s-4);
+  border-left: var(--bw-hair) solid var(--rule);
+}
+.seg__label { margin-right: var(--s-2); font: 700 var(--t-label)/1.2 var(--font-text); letter-spacing: .1em; text-transform: uppercase; color: var(--form-2); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  white-space: nowrap;
+  padding: var(--s-2) var(--s-3);
+  color: var(--form);
+  font: 700 var(--t-ui)/1.2 var(--font-text);
+  box-shadow: inset 0 calc(var(--bw-strong) * -1) 0 transparent;
+  transition: background-color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
+}
+.seg button::before { content: "[" / ""; color: var(--form-2); margin-right: 2px; }
+.seg button::after { content: "]" / ""; color: var(--form-2); margin-left: 2px; }
+.seg button:hover { background: var(--band); }
+.seg button[aria-pressed="true"], .seg button[aria-selected="true"] { background: var(--band-2); box-shadow: inset 0 calc(var(--bw-strong) * -1) 0 var(--form); }
+
+.act {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: var(--s-6);
+  min-height: var(--row);
+  padding: 0 var(--s-5);
+  border: 0;
+  background: var(--form);
+  color: var(--on-form);
+  font: 700 var(--t-ui)/1.2 var(--font-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+.act:hover { background: var(--ink); }
+.act:focus-visible { outline-offset: 3px; }
+.job__bar .act { flex: none; min-width: 300px; }
+
+/* data tables (shared) */
+.scroller {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+.scroller:focus-visible { outline-offset: -3px; }
+.data {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font: 450 var(--t-data)/1.35 var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+  font-variant-numeric: tabular-nums;
+}
+.data thead th {
+  height: var(--row-head);
+  padding: 0 var(--s-4);
+  background: var(--band-2);
+  border-top: var(--bw-strong) solid var(--form);
+  border-bottom: var(--bw-hair) solid var(--form);
+  color: var(--form);
+  font: 700 var(--t-label)/1.2 var(--font-text);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+.data thead th.num { text-align: right; }
+.data td, .data tbody th {
+  padding: var(--s-2) var(--s-4);
+  text-align: left;
+  vertical-align: middle;
+  background: var(--paper);
+}
+.data tbody tr:nth-child(odd) > * { background: var(--band); }
+.data.js-band tbody tr > * { background: var(--paper); }
+.data.js-band tbody tr.is-band > * { background: var(--band); }
+.data tbody th { color: var(--form-2); font-weight: 500; font-size: var(--t-data-sub); width: 3.25rem; }
+.data .num { text-align: right; }
+.c { min-height: calc(var(--row) - var(--s-4)); display: flex; flex-direction: column; justify-content: center; }
+.num .c { align-items: flex-end; }
+.v { display: block; width: fit-content; position: relative; color: var(--ink); white-space: nowrap; }
+.s { display: block; margin-top: 2px; color: var(--ink-soft); font-size: var(--t-data-sub); white-space: nowrap; }
+.empty { color: var(--form-2); font-style: normal; }
+
+/* hero table specifics */
+.job__table { min-width: 0; }
+.job__table thead th:first-child, .job__table tbody th { position: sticky; left: 0; z-index: 3; }
+.job__table thead th:nth-child(2), .job__table tbody td:nth-child(2) { position: sticky; left: 3.25rem; z-index: 3; }
+.job__table tbody td:nth-child(2) { box-shadow: inset calc(var(--bw-hair) * -1) 0 0 var(--rule); }
+.job__table thead th:nth-child(2) { box-shadow: inset calc(var(--bw-hair) * -1) 0 0 var(--rule); }
+
+.st { display: inline-flex; align-items: center; gap: 6px; color: var(--form); font-weight: 600; white-space: nowrap; }
+.st .i { width: 12px; height: 12px; stroke-width: 1.75; }
+.st b { font-weight: 600; }
+.st b::before { content: "[" / ""; }
+.st b::after { content: "]" / ""; }
+.chg .st { color: var(--red); }
+.m-st { display: none; margin-top: var(--s-1); font-size: var(--t-data-sub); }
+
+
+/* struck duplicate */
+.dup td:not(.stc) .v {
+  text-decoration-line: line-through;
+  text-decoration-color: var(--form);
+  text-decoration-thickness: var(--bw-edge);
+  transition: text-decoration-color var(--t-base) var(--ease-out);
+}
+
+/* lifted changed cell */
+.chg .pr { position: relative; }
+.lift {
+  position: absolute;
+  inset: calc(var(--lift-inset) * -1);
+  z-index: 2;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end;
+  padding: 0 calc(var(--s-4) + var(--lift-inset));
+  background: var(--red-wash);
+  outline: var(--bw-edge) solid var(--red);
+  box-shadow: var(--sh-lift);
+  transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out), box-shadow var(--t-slow) var(--ease-out);
+}
+.lift .v { color: var(--red); font-weight: 650; }
+.lift .s { color: var(--ink-soft); }
+.lift del { text-decoration-thickness: var(--bw-hair); }
+
+/* totals */
+.data tfoot td {
+  padding: var(--s-3) var(--s-4);
+  border-top: var(--bw-strong) solid var(--form);
+  background: var(--paper);
+  transition: opacity var(--t-base) var(--ease-out);
+}
+.totals__in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3) var(--s-6); }
+.totals__line { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-5); color: var(--form-2); }
+.totals__line b { color: var(--ink); font-weight: 600; }
+.totals__line .chgc b { color: var(--red); }
+.link-btn {
+  appearance: none; border: 0; background: transparent; cursor: pointer; padding: var(--s-2) 0;
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  color: var(--form); font: 700 var(--t-ui)/1.2 var(--font-text);
+  text-decoration: underline; text-decoration-thickness: var(--bw-hair); text-underline-offset: 3px;
+}
+.link-btn { white-space: nowrap; flex: none; }
+.link-btn:hover { color: var(--ink); }
+.note { margin-top: var(--s-3); color: var(--form-2); font-size: var(--t-small); }
+.job__mobile-note { display: none; }
+.job__table td:last-child .v { white-space: nowrap; }
+
+/* print run states: each line is wiped on left to right, like a print head passing */
+.job.is-running tbody tr .c { clip-path: inset(0 0 0 0); transition: clip-path var(--t-base) var(--ease-out); }
+.job.is-running tbody tr > :nth-child(2) .c { transition-delay: 25ms; }
+.job.is-running tbody tr > :nth-child(3) .c { transition-delay: 50ms; }
+.job.is-running tbody tr > :nth-child(4) .c { transition-delay: 75ms; }
+.job.is-running tbody tr > :nth-child(5) .c { transition-delay: 100ms; }
+.job.is-running tbody tr > :nth-child(6) .c { transition-delay: 125ms; }
+.job.is-running tbody tr > :nth-child(7) .c { transition-delay: 150ms; }
+.job.is-running tbody tr:not(.is-printed) .c { clip-path: inset(0 100% 0 0); }
+.job.is-running tr.dup:not(.is-struck) td:not(.stc) .v { text-decoration-color: transparent; }
+.job.is-running tr.dup:not(.is-struck) .stc .c, .job.is-running tr.chg:not(.is-lifted) .stc .c { clip-path: inset(0 100% 0 0); }
+.job.is-running .lift { clip-path: inset(-32px); transition: clip-path var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out), box-shadow var(--t-slow) var(--ease-out); }
+.job.is-running tr.chg:not(.is-lifted) .lift { clip-path: inset(0 100% 0 0); transform: scale(.96); box-shadow: none; }
+.job.is-running tfoot td { clip-path: inset(-4px); transition: clip-path var(--t-slow) var(--ease-out); }
+.job.is-running tfoot td:not(.is-printed) { clip-path: inset(0 100% 0 0); }
+
+/* delivered view: struck rows leave the file */
+.job__table td, .job__table tbody th { padding-block: 0; }
+.job__table .c { display: grid; grid-template-rows: 1fr; grid-template-columns: auto; justify-content: stretch; align-items: stretch; min-height: 0; transition: grid-template-rows var(--t-slow) var(--ease-io), opacity var(--t-base) var(--ease-out); }
+.job__table .ci { min-height: 0; overflow-x: visible; overflow-y: clip; display: flex; flex-direction: column; justify-content: center; padding-block: calc((var(--row) - 2.35rem) / 2); }
+.job__table .num .ci { align-items: flex-end; }
+.job.is-delivered tr.dup .c { grid-template-rows: 0fr; opacity: 0; }
+.job.is-delivered .job__table th:nth-child(4), .job.is-delivered .job__table td.stc { display: none; }
+.job.is-delivered .lift { inset: 0; padding: 0 var(--s-4); outline-color: transparent; box-shadow: none; background: inherit; }
+.job.is-delivered .lift .v { color: var(--ink); font-weight: 450; }
+
+/* ---------- pages ---------- */
+.brk {
+  position: relative;
+  margin: 0 calc(var(--pad) * -1);
+  border-top: var(--bw-hair) dashed var(--rule);
+}
+.brk span {
+  position: absolute; right: var(--pad); top: 0; translate: 0 -50%;
+  padding: 0 var(--s-2);
+  background: var(--paper);
+  color: var(--form-2);
+  font: 500 var(--t-micro)/1.2 var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.page { padding: var(--s-9) 0 var(--s-8); scroll-margin-top: var(--s-4); }
+.page__head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  margin-bottom: var(--s-7);
+}
+.page__head h2 {
+  grid-column: 1 / span 8;
+  color: var(--form);
+  font: 800 var(--t-headline)/.95 var(--font-display);
+  letter-spacing: -.005em;
+  text-wrap: balance;
+}
+.page__head p {
+  grid-column: 1 / span 7;
+  margin-top: var(--s-4);
+  max-width: 62ch;
+  font-size: var(--t-lede);
+  line-height: 1.5;
+}
+.page__head--side h2 { grid-column: 1 / span 6; }
+.page__head--side p { grid-column: 8 / span 5; align-self: end; margin-top: 0; }
+
+/* run log */
+.log { min-width: 820px; }
+.log td, .log tbody th { padding-block: var(--s-4); vertical-align: top; }
+.log tbody th { width: 8.5rem; color: var(--ink); font-size: var(--t-data); font-weight: 450; }
+.log .step { width: 11rem; color: var(--form); font: 800 1.375rem/1.1 var(--font-display); letter-spacing: .01em; }
+.log .what { font: 400 var(--t-body)/1.55 var(--font-text); max-width: 68ch; }
+.log .what q { font-family: var(--font-mono); font-size: var(--t-data); font-variation-settings: "wdth" var(--wdth-data); quotes: "\201C" "\201D"; }
+.log .who { width: 8rem; }
+.who b { font-weight: 600; color: var(--form); }
+.who b::before { content: "[" / ""; } .who b::after { content: "]" / ""; }
+.who--you b { color: var(--ink); }
+
+/* annotated excerpt */
+.anat { position: relative; }
+.anat__row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.co {
+  display: flex; gap: var(--s-3); align-items: flex-start;
+  padding: 0 var(--s-3);
+  font-size: var(--t-small); line-height: 1.45;
+}
+.co p { max-width: 34ch; }
+.co p strong { display: block; color: var(--form); font: 800 1.25rem/1.1 var(--font-display); letter-spacing: .01em; margin-bottom: 2px; }
+.mk {
+  display: inline-grid; place-items: center; flex: none;
+  width: var(--marker); height: var(--marker);
+  border-radius: var(--r-round);
+  background: var(--form); color: var(--on-form);
+  font: 700 .75rem/1 var(--font-text);
+  font-variant-numeric: tabular-nums;
+}
+.lead { height: var(--s-6); }
+.lead span { display: block; width: var(--bw-hair); height: 100%; margin-left: calc(var(--s-3) + var(--marker) / 2 - .5px); background: var(--form); }
+.xt { table-layout: fixed; min-width: 0; }
+.xt thead th, .xt td { padding-inline: var(--s-3); }
+.xt thead th { white-space: nowrap; text-transform: none; letter-spacing: .02em; font: 600 var(--t-data-sub)/1.2 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); }
+.hk { display: inline-flex; align-items: center; gap: var(--s-2); white-space: nowrap; }
+.xt td { padding-block: var(--s-3); }
+.xt .v, .xt .s { white-space: normal; overflow-wrap: anywhere; }
+.xt .wrapurl .v { font-size: var(--t-data-sub); }
+.anat__list { display: none; }
+
+/* formats */
+.fmt__bar { display: flex; flex-wrap: wrap; align-items: stretch; border-top: var(--bw-strong) solid var(--form); border-bottom: var(--bw-hair) solid var(--rule); }
+.fmt__bar .seg { border-left: 0; padding-left: 0; flex-wrap: wrap; }
+.fmt__file { margin-left: auto; display: flex; align-items: center; padding: var(--s-2) 0 var(--s-2) var(--s-4); border-left: var(--bw-hair) solid var(--rule); color: var(--form-2); font: 450 var(--t-micro)/1.3 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); letter-spacing: .02em; }
+.fmt__panel { min-height: 0; }
+.fmt__panel[hidden] { display: none; }
+.code {
+  margin: 0;
+  padding: 0 var(--s-4);
+  overflow-x: auto;
+  font: 400 var(--t-code)/24px var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+  color: var(--ink);
+  tab-size: 2;
+}
+.code code { display: block; min-width: max-content; white-space: pre; }
+.code .ln { display: block; padding: var(--s-1) var(--s-4); margin: 0 calc(var(--s-4) * -1); }
+.code .ln:nth-child(odd) { background: var(--band); }
+.code .k { color: var(--form); font-weight: 600; }
+.code .h { color: var(--form-2); }
+.fmt__cap { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); padding-top: var(--s-4); border-top: var(--bw-hair) solid var(--rule); }
+.fmt__cap p { grid-column: 1 / span 7; font-size: var(--t-small); }
+.fmt__cap .sched { grid-column: 8 / span 5; font-size: var(--t-small); color: var(--ink); }
+.sched b { color: var(--form); }
+.sched code { font: 450 var(--t-data-sub)/1 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); white-space: nowrap; color: var(--ink); background: var(--band); padding: 2px var(--s-1); }
+.xl { min-width: 860px; }
+.xl th, .xl td { border-right: var(--bw-hair) solid var(--rule); border-bottom: var(--bw-hair) solid var(--rule); padding: var(--s-1) var(--s-3); height: 36px; background: var(--paper); }
+.xl thead th { height: 28px; border-top: 0; background: var(--band-2); border-bottom: var(--bw-hair) solid var(--rule); text-align: center; letter-spacing: 0; font: 600 var(--t-data-sub)/1 var(--font-mono); color: var(--form); }
+.xl tbody th { width: 2.75rem; text-align: center; background: var(--band-2); color: var(--form); }
+.xl tbody tr:nth-child(odd) > * { background: var(--paper); }
+.xl tbody tr:nth-child(odd) > th, .xl tbody tr:nth-child(even) > th { background: var(--band-2); }
+.xl .hdr td { font-weight: 650; background: var(--band); }
+.xl .sel { outline: var(--bw-strong) solid var(--form); outline-offset: -2px; }
+.fbar { display: flex; align-items: center; gap: var(--s-4); min-height: 40px; padding: 0 var(--s-3); border-bottom: var(--bw-hair) solid var(--rule); font: 450 var(--t-data)/1 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); }
+.fbar span:first-child { min-width: 3.5rem; color: var(--form); font-weight: 600; }
+.fbar i { font-style: normal; color: var(--form-2); }
+.tabs { display: flex; align-items: stretch; min-height: 36px; border-top: var(--bw-hair) solid var(--rule); background: var(--band); font: 600 var(--t-small)/1 var(--font-text); }
+.tabs span { display: flex; align-items: center; padding: var(--s-2) var(--s-4); border-right: var(--bw-hair) solid var(--rule); color: var(--form-2); }
+.tabs .on { background: var(--paper); color: var(--form); box-shadow: inset 0 var(--bw-strong) 0 var(--form); }
+
+/* exception report */
+.exc { min-width: 860px; }
+.exc td, .exc tbody th { padding-block: var(--s-3); vertical-align: top; }
+.exc tbody th { width: 6rem; color: var(--ink); font-size: var(--t-data); font-weight: 450; }
+.exc .ev { width: 11rem; font-weight: 600; color: var(--form); white-space: nowrap; }
+.exc .held th, .exc .held td { border-top: var(--bw-strong) solid var(--red); }
+.exc .held .ev, .exc .held .v { color: var(--red); }
+.exc .held .ev { display: flex; gap: var(--s-2); align-items: center; }
+.exc code { font: 400 var(--t-code)/1.6 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); color: var(--ink); white-space: pre; }
+.exc .old code { text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: var(--bw-hair); }
+.exc .msg { font: 400 var(--t-body)/1.55 var(--font-text); max-width: 64ch; }
+
+/* public data: the one solid pre-printed block */
+.page.page--solid { margin: 0 calc(var(--pad) * -1); padding-inline: var(--pad); background: var(--form); color: var(--on-form); }
+.page--solid .page__head h2 { color: var(--on-form); }
+.page--solid .page__head p { color: var(--band-2); }
+.page--solid ::selection { background: var(--on-form); color: var(--form); }
+.page--solid .pub th { background: transparent; color: var(--on-form); border-top-color: var(--on-form); border-bottom-color: var(--form-2); }
+.page--solid .pub tbody tr:nth-child(odd) td { background: var(--form-band); }
+.page--solid .pub td + td, .page--solid .pub th + th { border-left-color: var(--form-2); }
+.pub { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.pub th { padding: var(--s-3) var(--s-4); background: var(--band-2); border-top: var(--bw-strong) solid var(--form); border-bottom: var(--bw-hair) solid var(--form); text-align: left; color: var(--form); font: 800 1.5rem/1 var(--font-display); letter-spacing: .01em; }
+.pub th .i { width: 18px; height: 18px; margin-right: var(--s-2); vertical-align: -2px; }
+.pub td { padding: var(--s-4); vertical-align: top; font-size: var(--t-body); line-height: 1.5; }
+.pub tbody tr:nth-child(odd) td { background: var(--band); }
+.pub td + td, .pub th + th { border-left: var(--bw-hair) solid var(--rule); }
+.pub__note { margin-top: var(--s-5); max-width: 68ch; }
+
+/* request form */
+.req-wrap { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); align-items: start; }
+.req-wrap .page__head { grid-column: 1 / span 5; display: block; margin: 0; position: sticky; top: var(--s-6); }
+.req-wrap .page__head h2, .req-wrap .page__head p { grid-column: auto; }
+.req-side { margin-top: var(--s-6); display: grid; gap: var(--s-3); max-width: 44ch; font-size: var(--t-small); }
+.req-side li { display: flex; gap: var(--s-3); }
+.req-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); }
+.req-side .i { margin-top: 4px; color: var(--form); }
+.req { grid-column: 7 / span 6; border-top: var(--bw-strong) solid var(--form); }
+.fld { margin: 0; padding: var(--s-4) 0; border: 0; border-bottom: var(--bw-hair) solid var(--rule); min-width: 0; }
+.fld > label, .fld legend { display: block; padding: 0; margin-bottom: var(--s-2); color: var(--form); font: 700 var(--t-label)/1.2 var(--font-text); letter-spacing: .1em; text-transform: uppercase; }
+.fld legend { float: left; width: 100%; }
+.fld legend + * { clear: both; }
+.inp {
+  display: block; width: 100%;
+  min-height: 48px;
+  padding: var(--s-3) var(--s-3);
+  border: var(--bw-hair) solid var(--form);
+  border-radius: var(--r-0);
+  background: var(--paper);
+  font: 450 var(--t-data)/1.5 var(--font-mono);
+  font-variation-settings: "wdth" var(--wdth-data);
+  color: var(--ink);
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+textarea.inp { resize: vertical; min-height: 96px; }
+.inp::placeholder { color: var(--form-2); opacity: 1; font-family: var(--font-text); font-size: var(--t-small); }
+.inp:hover { background: var(--band); }
+.inp:focus-visible { outline-offset: 0; }
+.inp[aria-invalid="true"] { border-width: var(--bw-strong); background: var(--band-2); }
+.hint { margin-top: var(--s-2); color: var(--form-2); font-size: var(--t-small); }
+.err { display: flex; gap: var(--s-2); align-items: flex-start; margin-top: var(--s-2); color: var(--ink); font-size: var(--t-small); font-weight: 600; }
+.err .i { margin-top: 3px; color: var(--form); }
+.err[hidden] { display: none; }
+.opts { display: flex; flex-wrap: wrap; border: var(--bw-hair) solid var(--form); }
+.opt { position: relative; flex: 1 1 auto; }
+.opt + .opt { border-left: var(--bw-hair) solid var(--rule); }
+.opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.opt span { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--s-4); color: var(--form); font: 700 var(--t-ui)/1.2 var(--font-text); transition: background-color var(--t-fast) var(--ease-out); white-space: nowrap; }
+.opt input:hover + span { background: var(--band); }
+.opt input:checked + span { background: var(--band-2); box-shadow: inset 0 calc(var(--bw-strong) * -1) 0 var(--form); }
+.opt input:focus-visible + span { outline: 3px solid var(--form); outline-offset: -3px; }
+.req__send { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4) var(--s-5); padding-top: var(--s-5); }
+.req__send .act { min-width: 300px; }
+.req__send p { color: var(--form-2); font-size: var(--t-small); max-width: 40ch; }
+.receipt { margin-top: var(--s-5); border-top: var(--bw-strong) solid var(--form); }
+.receipt[hidden] { display: none; }
+.receipt p { padding: var(--s-2) var(--s-4); font: 450 var(--t-data)/1.5 var(--font-mono); font-variation-settings: "wdth" var(--wdth-data); }
+.receipt p:nth-child(odd) { background: var(--band); }
+.receipt b { color: var(--form); font-weight: 600; }
+
+/* footer */
+.foot { padding: var(--s-8) 0 var(--s-7); }
+.foot__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); row-gap: var(--s-5); padding-top: var(--s-7); align-items: start; }
+.foot__brand { grid-column: 1 / span 5; }
+.foot__brand strong { display: flex; align-items: center; gap: var(--s-3); color: var(--form); font: 800 2rem/1 var(--font-display); }
+.foot__brand strong .i { width: 26px; height: 26px; }
+.foot__brand p { margin-top: var(--s-3); max-width: 40ch; }
+.foot__links { grid-column: 7 / span 3; list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.foot__demo { grid-column: 10 / span 3; color: var(--form); font-weight: 700; }
+.foot__demo span { display: block; margin-top: var(--s-2); color: var(--form-2); font-weight: 400; font-size: var(--t-small); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1399px) {
+  :root { --wdth-data: 75; }
+  .job__table td:last-child .v { white-space: normal; overflow-wrap: anywhere; max-width: 13rem; }
+}
+@media (max-width: 1179px) {
+  .job__table th:nth-child(6), .job__table td:nth-child(6) { display: none; }
+  .job__mobile-note { display: inline; }
+}
+@media (max-width: 1319px) {
+  .job__counts { display: none; }
+  .job__bar .seg { border-left: 0; padding-left: 0; margin-right: auto; }
+}
+@media (max-width: 999px) {
+  .job__table th:nth-child(5), .job__table td:nth-child(5), .job__table th:nth-child(7), .job__table td:nth-child(7) { display: none; }
+  .job__table td:nth-child(2) .v { white-space: normal; }
+  .job__table .stc .s { white-space: normal; }
+  .job__mobile-note { display: inline; }
+}
+@media (max-width: 1179px) {
+  .job__title { white-space: normal; font-size: clamp(2.75rem, 7.4vw, 5.5rem); }
+  .job__title .l { display: block; }
+  .page__head h2 { grid-column: 1 / -1; }
+  .page__head p { grid-column: 1 / span 10; }
+  .page__head--side p { grid-column: 1 / span 10; margin-top: var(--s-4); }
+  .req-wrap .page__head { grid-column: 1 / -1; }
+  .req { grid-column: 1 / -1; margin-top: var(--s-6); }
+  .req-side { max-width: 62ch; }
+}
+@media (max-width: 999px) {
+  .nav__links { display: none; }
+  .job__head { grid-template-columns: 1fr; }
+  .job__lede { padding-right: 0; }
+  .job__params { border-left: 0; border-top: var(--bw-hair) solid var(--rule); padding-left: 0; }
+  .anat__row--top, .anat__row--bot, .lead { display: none; }
+  .anat__list { display: grid; gap: var(--s-4); list-style: none; margin: var(--s-6) 0 0; padding: 0; counter-reset: none; }
+  .anat__list li { display: flex; gap: var(--s-3); align-items: flex-start; max-width: 62ch; font-size: var(--t-small); line-height: 1.45; }
+  .anat__list strong { display: block; color: var(--form); font: 800 1.25rem/1.1 var(--font-display); margin-bottom: 2px; }
+  .fmt__cap p, .fmt__cap .sched { grid-column: 1 / -1; }
+  .fmt__cap .sched { margin-top: var(--s-3); }
+  .foot__brand, .foot__links, .foot__demo { grid-column: 1 / -1; }
+  .xt { min-width: 1060px; }
+  .log, .exc { min-width: 0; }
+  .log thead, .exc thead { display: none; }
+  .log, .log tbody, .log tr, .exc, .exc tbody, .exc tr { display: block; }
+  .log tr, .exc tr { display: grid; grid-template-columns: auto 1fr; column-gap: var(--s-3); padding: var(--s-3) var(--s-3); }
+  .log tbody tr:nth-child(odd), .exc tbody tr:nth-child(odd) { background: var(--band); }
+  .log td, .log tbody th, .exc td, .exc tbody th { display: block; padding: 0; background: transparent !important; width: auto; }
+  .log .step { width: auto; font-size: 1.25rem; }
+  .log .what, .exc td:last-child { grid-column: 1 / -1; margin-top: var(--s-2); }
+  .log .who { grid-column: 1 / -1; margin-top: var(--s-2); }
+  .exc .ev { width: auto; }
+  .exc tbody th:empty { display: none; }
+  .exc tbody th:empty + .ev { grid-column: 1 / -1; }
+  .exc code, .exc .v { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .exc .held { border-top: var(--bw-strong) solid var(--red); }
+  .exc .held th, .exc .held td { border-top: 0; }
+}
+@media (max-width: 699px) {
+  .job { padding-top: var(--s-5); }
+  .job__title { font-size: min(2.75rem, calc((100vw - 2 * var(--tractor) - 2 * var(--pad)) / 7.6)); line-height: .95; padding-top: var(--s-3); }
+  .job__params { display: none; }
+  .job__counts { display: none; }
+  .job__lede .tail { display: none; }
+  .job__bar { flex-wrap: wrap; }
+  .seg { border-left: 0; padding: var(--s-2) 0; flex: 1 1 auto; }
+  .job__bar .act { flex: 1 1 100%; min-width: 0; }
+  .data tbody th { width: 2.5rem; padding-inline: var(--s-2) var(--s-1); }
+  .job .scroller { overflow-x: visible; }
+  .job__table { min-width: 0; }
+  .job__table th:nth-child(n+4), .job__table td:nth-child(n+4) { display: none; }
+  .job__table tfoot td { display: table-cell; }
+  .job__table .m-st { display: inline-flex; flex-wrap: wrap; white-space: normal; }
+  .job__table .sku { display: none; }
+  .job__table td:nth-child(2) .v, .job__table td:nth-child(2) .s { white-space: normal; overflow-wrap: anywhere; }
+  .job__table th:nth-child(2), .job__table td:nth-child(2) { position: static; box-shadow: none; }
+  .job__table th:first-child, .job__table tbody th { position: static; }
+  .job__table td:nth-child(3) { width: 6.5rem; }
+  .job__table td:nth-child(3) .s { white-space: normal; text-align: right; }
+  .lift { right: 0; }
+  .nav__brand { font-size: 1.375rem; }
+  .nav__sample { padding-left: var(--s-4); }
+  .cell { padding: 0 var(--s-4); }
+  .page { padding: var(--s-8) 0 var(--s-7); }
+  .page__head { margin-bottom: var(--s-6); }
+  .page__head p, .page__head--side p { grid-column: 1 / -1; }
+  .fmt__file { margin-left: 0; border-left: 0; padding-left: 0; flex-basis: 100%; border-top: var(--bw-hair) solid var(--rule); }
+  .req__send .act { flex: 1 1 100%; min-width: 0; }
+  .seg button, .link-btn { min-height: 44px; }
+  .fmt__bar .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; padding-right: 0; }
+  .opts--4 { display: grid; grid-template-columns: 1fr 1fr; }
+  .opts--4 .opt:nth-child(3) { border-left: 0; }
+  .opts--4 .opt:nth-child(n+3) { border-top: var(--bw-hair) solid var(--rule); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-logo" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3.5" y="4" width="9" height="2.5" fill="currentColor" stroke="none"/><rect x="3.5" y="9.5" width="9" height="2.5" fill="currentColor" stroke="none" opacity=".35"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 2.5v11M2.5 8h11"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M2.5 8h10M9 4.5 12.5 8 9 11.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m2.5 8.5 3.5 3.5 7.5-8"/></symbol>
+  <symbol id="i-dup" viewBox="0 0 16 16"><path d="M2 5.5h8.5V14H2zM5.5 5.5V2H14v8.5h-3.5"/></symbol>
+  <symbol id="i-new" viewBox="0 0 16 16"><path d="M2 2h12v12H2zM8 5v6M5 8h6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v10M4 9l4 4 4-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 1.8 14.8 14H1.2zM8 6.5v3.5M8 11.8v.4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="m3.5 3.5 9 9M12.5 3.5l-9 9"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 16 16"><path d="M13 8.5A5 5 0 1 1 11.2 4.4M12.5 1.5v3.5H9"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 16 16"><path d="M1.5 3.5h13v9h-13zM1.5 4l6.5 5 6.5-5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><path d="M3 7h10v7H3zM5 7V4.5a3 3 0 0 1 6 0V7"/></symbol>
+</svg>
+
+<div class="sheet">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <a class="cell nav__brand" href="#top" aria-label="Rowcrop, back to top"><svg class="i" aria-hidden="true"><use href="#i-logo"/></svg>Rowcrop</a>
+    <nav class="nav__links" aria-label="Sections">
+      <a class="cell" href="#how">How a job runs</a>
+      <a class="cell" href="#arrives">What arrives</a>
+      <a class="cell" href="#formats">Formats</a>
+      <a class="cell" href="#public">Public data only</a>
+    </nav>
+    <a class="cell nav__sample" href="#sample">Free sample <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </header>
+
+  <main id="main">
+    <!-- page 1: the job -->
+    <section class="job" id="top" aria-labelledby="job-title">
+      <h1 class="job__title" id="job-title"><span class="l">You name the columns.</span> <span class="l">We deliver <mark>the rows.</mark></span></h1>
+
+      <div class="job__head">
+        <p class="job__lede">Rowcrop collects public web data for you. Name a website and the columns you need, confirm a free sample, then get clean, deduplicated rows as CSV, Excel, Google Sheets or straight into your database<span class="tail">, once or on a schedule</span>.</p>
+        <dl class="job__params" aria-label="Example job">
+          <dt>Job</dt><dd>0412, competitor prices</dd>
+          <dt>Sources</dt><dd>3 stores (fictional)</dd>
+          <dt>Columns</dt><dd>product, price, stock, rating, source</dd>
+          <dt>Schedule</dt><dd>daily, 06:00 UTC</dd>
+        </dl>
+      </div>
+
+      <div class="job__bar">
+        <p class="job__counts"><span><b>14</b> read</span><span><b>3</b> removed</span><span class="chgc"><b>2</b> changed</span><span><b>1</b> new</span><span><b>11</b> delivered</span></p>
+        <div class="seg" role="group" aria-label="Table view">
+          <span class="seg__label" aria-hidden="true">View</span>
+          <button type="button" aria-pressed="true" data-view="report">Run report</button>
+          <button type="button" aria-pressed="false" data-view="delivered">Delivered file</button>
+        </div>
+        <a class="act" href="#sample">Request a free sample <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <p class="sr-only" id="view-status" aria-live="polite"></p>
+      </div>
+
+      <div class="scroller" tabindex="0" role="region" aria-label="Example run, scrolls sideways on small screens">
+        <table class="data job__table" aria-labelledby="job-title" aria-describedby="job-note">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Product / store</th>
+              <th scope="col" class="num">Price</th>
+              <th scope="col">Status</th>
+              <th scope="col">Stock</th>
+              <th scope="col" class="num">Rating</th>
+              <th scope="col">Source / read at</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">01</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Carbon steel skillet, 26&nbsp;cm</span><span class="s">fernhollow.example<span class="sku"> · FH-CS26</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$54.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">38 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.7</span><span class="s">212 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/products/carbon-skillet-26</span><span class="s">06:00:14 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">02</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Enameled Dutch oven, 5.2&nbsp;L</span><span class="s">fernhollow.example<span class="sku"> · FH-DO52</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$129.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">Low stock</span><span class="s">4 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.8</span><span class="s">96 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/products/dutch-oven-52</span><span class="s">06:00:15 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">03</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Chef's knife 21&nbsp;cm, VG-10</span><span class="s">larkspur-supply.example<span class="sku"> · LS-K21</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$89.50</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">17 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.6</span><span class="s">340 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/shop/chef-knife-21</span><span class="s">06:00:21 UTC</span></div></div></td>
+            </tr>
+            <tr class="dup">
+              <th scope="row"><div class="c"><div class="ci">04</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Chef's Knife 21cm VG10</span><span class="s">larkspur-supply.example<span class="sku"> · LS-K21</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 03</b> same SKU</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$89.50</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 03</b></span><span class="s">same SKU</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">17 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.6</span><span class="s">340 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/sale/chef-knife-21</span><span class="s">06:00:22 UTC</span></div></div></td>
+            </tr>
+            <tr class="chg">
+              <th scope="row"><div class="c"><div class="ci">05</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Cast iron grill pan, 27&nbsp;cm</span><span class="s">millbrook.example<span class="sku"> · MB-GP27</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><b>CHANGED</b> price down 7.00</span></div></div></td>
+              <td class="num pr"><div class="c"><div class="ci"><span class="v">$41.00</span><span class="s">USD</span></div></div><div class="lift"><span class="v">$41.00</span><span class="s">was <del>$48.00</del></span></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><b>CHANGED</b></span><span class="s">price down 7.00</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">9 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.4</span><span class="s">58 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/cookware/grill-pan-27</span><span class="s">06:00:30 UTC</span></div></div></td>
+            </tr>
+            <tr class="new">
+              <th scope="row"><div class="c"><div class="ci">06</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Linen apron, charcoal</span><span class="s">millbrook.example<span class="sku"> · MB-AP-CH</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-new"/></svg><b>NEW</b> first seen today</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">32.00</span><span class="s">EUR, "32,00&nbsp;€"</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-new"/></svg><b>NEW</b></span><span class="s">first seen today</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">50 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v empty">(empty)</span><span class="s">not shown</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/textiles/linen-apron</span><span class="s">06:00:33 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">07</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Bamboo cutting board, large</span><span class="s">fernhollow.example<span class="sku"> · FH-BB-L</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$36.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">Out of stock</span><span class="s">0 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.5</span><span class="s">41 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/products/bamboo-board-l</span><span class="s">06:00:16 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">08</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Pour-over kettle, 1&nbsp;L</span><span class="s">larkspur-supply.example<span class="sku"> · LS-PK1</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$64.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">22 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v empty">(empty)</span><span class="s">not shown</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/shop/pour-over-kettle</span><span class="s">06:00:24 UTC</span></div></div></td>
+            </tr>
+            <tr class="dup">
+              <th scope="row"><div class="c"><div class="ci">09</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Pour-over kettle, 1&nbsp;L</span><span class="s">larkspur-supply.example<span class="sku"> · LS-PK1</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 08</b> same page address</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$64.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 08</b></span><span class="s">same page address</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">22 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v empty">(empty)</span><span class="s">not shown</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/shop/pour-over-kettle?ref=mail</span><span class="s">06:00:25 UTC</span></div></div></td>
+            </tr>
+            <tr class="chg">
+              <th scope="row"><div class="c"><div class="ci">10</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Stainless sauté pan, 28&nbsp;cm</span><span class="s">millbrook.example<span class="sku"> · MB-SP28</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><b>CHANGED</b> price down 9.00</span></div></div></td>
+              <td class="num pr"><div class="c"><div class="ci"><span class="v">$69.00</span><span class="s">USD</span></div></div><div class="lift"><span class="v">$69.00</span><span class="s">was <del>$78.00</del></span></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg><b>CHANGED</b></span><span class="s">price down 9.00</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">Low stock</span><span class="s">3 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v empty">(empty)</span><span class="s">not shown</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/cookware/saute-pan-28</span><span class="s">06:00:31 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">11</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Wooden spoon set of&nbsp;3</span><span class="s">fernhollow.example<span class="sku"> · FH-WS3</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$18.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">64 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.9</span><span class="s">305 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/products/spoon-set-3</span><span class="s">06:00:17 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">12</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Oven mitts, pair</span><span class="s">millbrook.example<span class="sku"> · no SKU on page</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$22.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">15 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.3</span><span class="s">27 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/textiles/oven-mitts</span><span class="s">06:00:34 UTC</span></div></div></td>
+            </tr>
+            <tr class="dup">
+              <th scope="row"><div class="c"><div class="ci">13</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">OVEN MITTS,  Pair </span><span class="s">millbrook.example<span class="sku"> · no SKU on page</span></span><span class="st m-st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 12</b> same name + store</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$22.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-dup"/></svg><b>DUP 12</b></span><span class="s">same name + store</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">15 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.3</span><span class="s">27 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/gifts/oven-mitts</span><span class="s">06:00:36 UTC</span></div></div></td>
+            </tr>
+            <tr class="ok">
+              <th scope="row"><div class="c"><div class="ci">14</div></div></th>
+              <td><div class="c"><div class="ci"><span class="v">Whetstone, 1000/6000 grit</span><span class="s">larkspur-supply.example<span class="sku"> · LS-WS16</span></span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">$45.00</span><span class="s">USD</span></div></div></td>
+              <td class="stc"><div class="c"><div class="ci"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><b>OK</b></span><span class="s">unchanged</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">In stock</span><span class="s">11 units</span></div></div></td>
+              <td class="num"><div class="c"><div class="ci"><span class="v">4.6</span><span class="s">88 reviews</span></div></div></td>
+              <td><div class="c"><div class="ci"><span class="v">/shop/whetstone-1000-6000</span><span class="s">06:00:27 UTC</span></div></div></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7">
+                <div class="totals__in">
+                  <p class="totals__line"><span>Run 29 Sep 2026</span><span><b>14</b> read</span><span><b>3</b> removed</span><span class="chgc"><b>2</b> changed</span><span><b>1</b> new</span><span><b>11</b> delivered to Google Sheets, tab "Competitor prices"</span></p>
+                  <button type="button" class="link-btn" data-replay><svg class="i" aria-hidden="true"><use href="#i-replay"/></svg>Run it again</button>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="note" id="job-note">Illustrative run. Stores, products and prices are invented for this demo.<span class="job__mobile-note"> On smaller screens the table shows fewer of its seven columns; the delivered file carries them all.</span></p>
+    </section>
+
+    <!-- page 2: how a job runs -->
+    <div class="brk" aria-hidden="true"><span>Page 2 of 6</span></div>
+    <section class="page" id="how" aria-labelledby="how-h">
+      <div class="page__head">
+        <h2 id="how-h">Sample first. Then the full run.</h2>
+        <p>Nothing runs at scale until you have seen your own table. Every job starts with a sample of about 30 rows, so you can check the column names, formats and odd cases before we read every page.</p>
+      </div>
+      <div class="scroller" tabindex="0" role="region" aria-label="How a job runs, as a run log">
+        <table class="data log">
+          <caption class="sr-only">How a job runs, illustrative timeline</caption>
+          <thead>
+            <tr><th scope="col">When</th><th scope="col">Step</th><th scope="col">What happens</th><th scope="col">Who</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Mon 09:12</th><td class="step">Request</td><td class="what">You send a website and the columns you need, in plain words: <q>price as shown, before discount</q>, <q>in stock, yes or no</q>.</td><td class="who who--you"><b>You</b></td></tr>
+            <tr><th scope="row">Mon 15:40</th><td class="step">Sample</td><td class="what">We send about 30 real rows with every column you named, plus a note on anything the pages do not show.</td><td class="who"><b>Rowcrop</b></td></tr>
+            <tr><th scope="row">Tue 10:05</th><td class="step">Confirm</td><td class="what">You approve the columns or change them. <q>Rating</q> becomes <q>rating and review count</q>. We send a new sample if anything changed.</td><td class="who who--you"><b>You</b></td></tr>
+            <tr><th scope="row">Tue 22:00</th><td class="step">Full run</td><td class="what">Every matching page is read. Duplicates are removed by the key you agreed, values are typed and normalized, and each row keeps its source URL.</td><td class="who"><b>Rowcrop</b></td></tr>
+            <tr><th scope="row">Wed 06:00</th><td class="step">Delivery</td><td class="what">The table lands where you work. On a schedule, every later run updates the same place and flags what changed.</td><td class="who"><b>Rowcrop</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Times are illustrative. How long a job takes depends on the site and the number of pages.</p>
+    </section>
+
+    <!-- page 3: what arrives -->
+    <div class="brk" aria-hidden="true"><span>Page 3 of 6</span></div>
+    <section class="page" id="arrives" aria-labelledby="arrives-h">
+      <div class="page__head page__head--side">
+        <h2 id="arrives-h">One row per product. Nothing guessed.</h2>
+        <p>The file you receive is the table you specified, column by column. These are the rules every row follows, shown on four rows from the run above.</p>
+      </div>
+
+      <div class="anat">
+        <div class="anat__row anat__row--top" aria-hidden="true">
+          <div class="co" style="grid-column: 1 / span 2"><span class="mk">1</span><p><strong>Your column names</strong>You name them in plain words. They keep the same names and order on every run.</p></div>
+          <div class="co" style="grid-column: 3 / span 3"><span class="mk">2</span><p><strong>Duplicates removed</strong>By a key you agree on: SKU, the page address without tracking tags, or name plus store.</p></div>
+          <div class="co" style="grid-column: 6 / span 3"><span class="mk">3</span><p><strong>Normalized and typed</strong>"32,00 €" on the page arrives as 32.00 and EUR. Stock is true or false.</p></div>
+          <div class="co" style="grid-column: 9 / span 4"><span class="mk">4</span><p><strong>A ticket of origin</strong>Every row carries its source URL and the time it was read, in UTC.</p></div>
+        </div>
+        <div class="anat__row anat__row--top lead" aria-hidden="true">
+          <div style="grid-column: 1"><span></span></div><div style="grid-column: 3"><span></span></div><div style="grid-column: 6"><span></span></div><div style="grid-column: 9"><span></span></div>
+        </div>
+
+        <div class="scroller" tabindex="0" role="region" aria-label="Annotated excerpt of a delivered file">
+          <table class="data xt">
+            <caption class="sr-only">Four delivered rows with numbered notes</caption>
+            <colgroup><col style="width:16.667%"><col style="width:8.333%"><col style="width:8.333%"><col style="width:8.333%"><col style="width:8.333%"><col style="width:8.333%"><col style="width:8.333%"><col style="width:16.667%"><col style="width:16.667%"></colgroup>
+            <thead>
+              <tr>
+                <th scope="col"><span class="hk"><span class="mk" aria-hidden="true">1</span>product_name</span></th>
+                <th scope="col"><span class="hk"><span class="mk" aria-hidden="true">2</span>sku</span></th>
+                <th scope="col">price</th>
+                <th scope="col">prev_price</th>
+                <th scope="col"><span class="hk"><span class="mk" aria-hidden="true">3</span>currency</span></th>
+                <th scope="col">in_stock</th>
+                <th scope="col">rating</th>
+                <th scope="col"><span class="hk"><span class="mk" aria-hidden="true">4</span>source_url</span></th>
+                <th scope="col">read_at</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><div class="c"><span class="v">Carbon steel skillet, 26&nbsp;cm</span></div></td><td><div class="c"><span class="v">FH-CS26</span></div></td><td><div class="c"><span class="v">54.00</span></div></td><td><div class="c"><span class="v empty">(empty)</span></div></td><td><div class="c"><span class="v">USD</span></div></td><td><div class="c"><span class="v">true</span></div></td><td><div class="c"><span class="v">4.7</span></div></td><td class="wrapurl"><div class="c"><span class="v">https:/<wbr>/<wbr><wbr>fernhollow.<wbr>example/<wbr>products/<wbr>carbon-skillet-26</span></div></td><td><div class="c"><span class="v">2026-09-29T<wbr>06:00:14Z</span></div></td></tr>
+              <tr><td><div class="c"><span class="v">Linen apron, charcoal</span></div></td><td><div class="c"><span class="v">MB-AP-CH</span></div></td><td><div class="c"><span class="v">32.00</span></div></td><td><div class="c"><span class="v empty">(empty)</span></div></td><td><div class="c"><span class="v">EUR</span></div></td><td><div class="c"><span class="v">true</span></div></td><td><div class="c"><span class="v empty">(empty)</span></div></td><td class="wrapurl"><div class="c"><span class="v">https:/<wbr>/<wbr><wbr>millbrook.<wbr>example/<wbr>textiles/<wbr>linen-apron</span></div></td><td><div class="c"><span class="v">2026-09-29T<wbr>06:00:33Z</span></div></td></tr>
+              <tr><td><div class="c"><span class="v">Cast iron grill pan, 27&nbsp;cm</span></div></td><td><div class="c"><span class="v">MB-GP27</span></div></td><td><div class="c"><span class="v">41.00</span></div></td><td><div class="c"><span class="v">48.00</span></div></td><td><div class="c"><span class="v">USD</span></div></td><td><div class="c"><span class="v">true</span></div></td><td><div class="c"><span class="v">4.4</span></div></td><td class="wrapurl"><div class="c"><span class="v">https:/<wbr>/<wbr><wbr>millbrook.<wbr>example/<wbr>cookware/<wbr>grill-pan-27</span></div></td><td><div class="c"><span class="v">2026-09-29T<wbr>06:00:30Z</span></div></td></tr>
+              <tr><td><div class="c"><span class="v">Stainless sauté pan, 28&nbsp;cm</span></div></td><td><div class="c"><span class="v">MB-SP28</span></div></td><td><div class="c"><span class="v">69.00</span></div></td><td><div class="c"><span class="v"><span class="hk"><span class="mk" aria-hidden="true">5</span>78.00</span></span></div></td><td><div class="c"><span class="v">USD</span></div></td><td><div class="c"><span class="v">true</span></div></td><td><div class="c"><span class="v empty"><span class="hk"><span class="mk" aria-hidden="true">6</span>(empty)</span></span></div></td><td class="wrapurl"><div class="c"><span class="v">https:/<wbr>/<wbr><wbr>millbrook.<wbr>example/<wbr>cookware/<wbr>saute-pan-28</span></div></td><td><div class="c"><span class="v">2026-09-29T<wbr>06:00:31Z</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="anat__row anat__row--bot lead" aria-hidden="true">
+          <div style="grid-column: 5"><span></span></div><div style="grid-column: 8"><span></span></div>
+        </div>
+        <div class="anat__row anat__row--bot" aria-hidden="true">
+          <div class="co" style="grid-column: 5 / span 3"><span class="mk">5</span><p><strong>Changes keep the old value</strong>The previous price stays beside the new one, so you can see what moved.</p></div>
+          <div class="co" style="grid-column: 8 / span 4"><span class="mk">6</span><p><strong>Missing stays empty</strong>We never fill in a value the page does not show.</p></div>
+        </div>
+
+        <ol class="anat__list">
+          <li><span class="mk" aria-hidden="true">1</span><p><strong>Your column names</strong>You name them in plain words. They keep the same names and order on every run.</p></li>
+          <li><span class="mk" aria-hidden="true">2</span><p><strong>Duplicates removed</strong>By a key you agree on: SKU, the page address without tracking tags, or name plus store.</p></li>
+          <li><span class="mk" aria-hidden="true">3</span><p><strong>Normalized and typed</strong>"32,00 €" on the page arrives as 32.00 and EUR. Stock is true or false.</p></li>
+          <li><span class="mk" aria-hidden="true">4</span><p><strong>A ticket of origin</strong>Every row carries its source URL and the time it was read, in UTC.</p></li>
+          <li><span class="mk" aria-hidden="true">5</span><p><strong>Changes keep the old value</strong>The previous price stays beside the new one, so you can see what moved.</p></li>
+          <li><span class="mk" aria-hidden="true">6</span><p><strong>Missing stays empty</strong>We never fill in a value the page does not show.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- page 4: formats -->
+    <div class="brk" aria-hidden="true"><span>Page 4 of 6</span></div>
+    <section class="page" id="formats" aria-labelledby="formats-h">
+      <div class="page__head">
+        <h2 id="formats-h">Delivered where you already work.</h2>
+        <p>Pick a format once. Every scheduled run writes to the same place, in the same shape, so your formulas and dashboards keep working.</p>
+      </div>
+
+      <div class="fmt">
+        <div class="fmt__bar">
+          <div class="seg" role="tablist" aria-label="Delivery format">
+            <button type="button" role="tab" id="tab-csv" aria-selected="true" aria-controls="p-csv" tabindex="0">CSV</button>
+            <button type="button" role="tab" id="tab-xlsx" aria-selected="false" aria-controls="p-xlsx" tabindex="-1">Excel</button>
+            <button type="button" role="tab" id="tab-sheets" aria-selected="false" aria-controls="p-sheets" tabindex="-1">Google Sheets</button>
+            <button type="button" role="tab" id="tab-db" aria-selected="false" aria-controls="p-db" tabindex="-1">Database</button>
+          </div>
+          <p class="fmt__file" id="fmt-file">competitor-prices_2026-09-29.csv</p>
+        </div>
+
+        <div class="fmt__panel" role="tabpanel" id="p-csv" aria-labelledby="tab-csv" data-file="competitor-prices_2026-09-29.csv">
+          <pre class="code" tabindex="0"><code><span class="ln"><span class="h">product_name,sku,price,prev_price,currency,in_stock,rating,source_url,read_at</span></span><span class="ln">"Carbon steel skillet, 26 cm",FH-CS26,54.00,,USD,true,4.7,https://fernhollow.example/products/carbon-skillet-26,2026-09-29T06:00:14Z</span><span class="ln">"Linen apron, charcoal",MB-AP-CH,32.00,,EUR,true,,https://millbrook.example/textiles/linen-apron,2026-09-29T06:00:33Z</span><span class="ln">"Cast iron grill pan, 27 cm",MB-GP27,41.00,48.00,USD,true,4.4,https://millbrook.example/cookware/grill-pan-27,2026-09-29T06:00:30Z</span><span class="ln">"Pour-over kettle, 1 L",LS-PK1,64.00,,USD,true,,https://larkspur-supply.example/shop/pour-over-kettle,2026-09-29T06:00:24Z</span><span class="ln">"Stainless sauté pan, 28 cm",MB-SP28,69.00,78.00,USD,true,,https://millbrook.example/cookware/saute-pan-28,2026-09-29T06:00:31Z</span><span class="ln">"Whetstone, 1000/6000 grit",LS-WS16,45.00,,USD,true,4.6,https://larkspur-supply.example/shop/whetstone-1000-6000,2026-09-29T06:00:27Z</span><span class="ln">"Wooden spoon set of 3",FH-WS3,18.00,,USD,true,4.9,https://fernhollow.example/products/spoon-set-3,2026-09-29T06:00:17Z</span><span class="ln">"Enameled Dutch oven, 5.2 L",FH-DO52,129.00,,USD,true,4.8,https://fernhollow.example/products/dutch-oven-52,2026-09-29T06:00:15Z</span><span class="ln">"Chef's knife 21 cm, VG-10",LS-K21,89.50,,USD,true,4.6,https://larkspur-supply.example/shop/chef-knife-21,2026-09-29T06:00:21Z</span><span class="ln">"Bamboo cutting board, large",FH-BB-L,36.00,,USD,false,4.5,https://fernhollow.example/products/bamboo-board-l,2026-09-29T06:00:16Z</span><span class="ln">"Oven mitts, pair",,22.00,,USD,true,4.3,https://millbrook.example/textiles/oven-mitts,2026-09-29T06:00:34Z</span></code></pre>
+        </div>
+
+        <div class="fmt__panel" role="tabpanel" id="p-xlsx" aria-labelledby="tab-xlsx" data-file="competitor-prices_2026-09-29.xlsx" hidden>
+          <div class="fbar" aria-hidden="true"><span>D4</span><i>fx</i><span>48</span></div>
+          <div class="scroller" tabindex="0" role="region" aria-label="Excel preview">
+            <table class="data xl">
+              <caption class="sr-only">Excel preview, typed columns</caption>
+              <thead><tr><th scope="col"><span class="sr-only">Row</span></th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th><th scope="col">E</th><th scope="col">F</th><th scope="col">G</th><th scope="col">H</th></tr></thead>
+              <tbody>
+                <tr class="hdr"><th scope="row">1</th><td>product_name</td><td>sku</td><td class="num">price</td><td class="num">prev_price</td><td>currency</td><td>in_stock</td><td class="num">rating</td><td>read_at</td></tr>
+                <tr><th scope="row">2</th><td>Carbon steel skillet, 26&nbsp;cm</td><td>FH-CS26</td><td class="num">54.00</td><td class="num"></td><td>USD</td><td>TRUE</td><td class="num">4.7</td><td>2026-09-29 06:00:14</td></tr>
+                <tr><th scope="row">3</th><td>Linen apron, charcoal</td><td>MB-AP-CH</td><td class="num">32.00</td><td class="num"></td><td>EUR</td><td>TRUE</td><td class="num"></td><td>2026-09-29 06:00:33</td></tr>
+                <tr><th scope="row">4</th><td>Cast iron grill pan, 27&nbsp;cm</td><td>MB-GP27</td><td class="num">41.00</td><td class="num sel">48.00</td><td>USD</td><td>TRUE</td><td class="num">4.4</td><td>2026-09-29 06:00:30</td></tr>
+                <tr><th scope="row">5</th><td>Pour-over kettle, 1&nbsp;L</td><td>LS-PK1</td><td class="num">64.00</td><td class="num"></td><td>USD</td><td>TRUE</td><td class="num"></td><td>2026-09-29 06:00:24</td></tr>
+                <tr><th scope="row">6</th><td>Stainless sauté pan, 28&nbsp;cm</td><td>MB-SP28</td><td class="num">69.00</td><td class="num">78.00</td><td>USD</td><td>TRUE</td><td class="num"></td><td>2026-09-29 06:00:31</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tabs" aria-hidden="true"><span class="on">prices</span><span>changes</span></div>
+        </div>
+
+        <div class="fmt__panel" role="tabpanel" id="p-sheets" aria-labelledby="tab-sheets" data-file="Sheet: Competitor prices, updated 06:01 UTC" hidden>
+          <div class="scroller" tabindex="0" role="region" aria-label="Google Sheets preview">
+            <table class="data xl">
+              <caption class="sr-only">Google Sheets preview</caption>
+              <thead><tr><th scope="col"><span class="sr-only">Row</span></th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th><th scope="col">E</th><th scope="col">F</th></tr></thead>
+              <tbody>
+                <tr class="hdr"><th scope="row">1</th><td>product_name</td><td>store</td><td class="num">price</td><td class="num">was</td><td>changed_at</td><td>source_url</td></tr>
+                <tr><th scope="row">2</th><td>Cast iron grill pan, 27&nbsp;cm</td><td>millbrook.example</td><td class="num">41.00</td><td class="num">48.00</td><td>2026-09-29 06:00</td><td>/cookware/grill-pan-27</td></tr>
+                <tr><th scope="row">3</th><td>Stainless sauté pan, 28&nbsp;cm</td><td>millbrook.example</td><td class="num">69.00</td><td class="num">78.00</td><td>2026-09-29 06:00</td><td>/cookware/saute-pan-28</td></tr>
+                <tr><th scope="row">4</th><td>Chef's knife 21&nbsp;cm, VG-10</td><td>larkspur-supply.example</td><td class="num">89.50</td><td class="num">94.00</td><td>2026-09-22 06:00</td><td>/shop/chef-knife-21</td></tr>
+                <tr><th scope="row">5</th><td>Enameled Dutch oven, 5.2&nbsp;L</td><td>fernhollow.example</td><td class="num">129.00</td><td class="num">119.00</td><td>2026-09-15 06:00</td><td>/products/dutch-oven-52</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tabs" aria-hidden="true"><span>Competitor prices</span><span class="on">Changes</span><span>Run log</span></div>
+        </div>
+
+        <div class="fmt__panel" role="tabpanel" id="p-db" aria-labelledby="tab-db" data-file="Postgres: public.competitor_prices" hidden>
+          <pre class="code" tabindex="0"><code><span class="ln"><span class="k">INSERT INTO</span> competitor_prices</span><span class="ln">  (sku, product_name, price, prev_price, currency, in_stock, rating, source_url, read_at)</span><span class="ln"><span class="k">VALUES</span></span><span class="ln">  ('MB-GP27', 'Cast iron grill pan, 27 cm', 41.00, <span class="k">NULL</span>, 'USD', true, 4.4,</span><span class="ln">   'https://millbrook.example/cookware/grill-pan-27', '2026-09-29T06:00:30Z')</span><span class="ln"><span class="k">ON CONFLICT</span> (sku) <span class="k">DO UPDATE SET</span></span><span class="ln">  prev_price = <span class="k">CASE WHEN</span> competitor_prices.price &lt;&gt; EXCLUDED.price</span><span class="ln">                    <span class="k">THEN</span> competitor_prices.price</span><span class="ln">                    <span class="k">ELSE</span> competitor_prices.prev_price <span class="k">END</span>,</span><span class="ln">  price      = EXCLUDED.price,</span><span class="ln">  in_stock   = EXCLUDED.in_stock,</span><span class="ln">  rating     = EXCLUDED.rating,</span><span class="ln">  read_at    = EXCLUDED.read_at;</span><span class="ln"><span class="h">-- one statement per row, in a single transaction per run</span></span></code></pre>
+        </div>
+
+        <div class="fmt__cap">
+          <p id="fmt-cap">UTF-8, comma separated, one header row. Empty cells stay empty; decimals always use a point.</p>
+          <p class="sched"><b>Runs:</b> once, every day at 06:00, every Monday, or on any schedule written as cron, such as <code>0 6 * * 1-5</code> for weekdays at 06:00.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- page 5: layout changes -->
+    <div class="brk" aria-hidden="true"><span>Page 5 of 6</span></div>
+    <section class="page" id="alerts" aria-labelledby="alerts-h">
+      <div class="page__head page__head--side">
+        <h2 id="alerts-h">When a store redesigns, you hear it from us first.</h2>
+        <p>Sites change without warning. When a source stops matching, we hold the run instead of shipping broken rows, tell you, and update how we read that site.</p>
+      </div>
+      <div class="scroller" tabindex="0" role="region" aria-label="Exception report">
+        <table class="data exc">
+          <caption class="sr-only">Exception report for a layout change, illustrative</caption>
+          <thead><tr><th scope="col">Time</th><th scope="col">Event</th><th scope="col">Detail</th></tr></thead>
+          <tbody>
+            <tr class="held"><th scope="row">06:04</th><td class="ev"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Run held</td><td><span class="v">millbrook.example: price not found on 212 of 212 product pages</span></td></tr>
+            <tr class="old"><th scope="row"></th><td class="ev">Before</td><td><code>&lt;span class="price"&gt;$48.00&lt;/span&gt;</code></td></tr>
+            <tr><th scope="row"></th><td class="ev">After</td><td><code>&lt;p data-testid="product-price"&gt;$48.00&lt;/p&gt;</code></td></tr>
+            <tr><th scope="row">06:05</th><td class="ev">Email sent</td><td class="msg">"Millbrook changed its product page. Today's run is held; your sheet still has yesterday's rows, untouched."</td></tr>
+            <tr><th scope="row">11:30</th><td class="ev">Repaired</td><td class="msg">Reading rules updated for the new layout and checked against your approved sample: 30 of 30 rows match.</td></tr>
+            <tr><th scope="row">12:10</th><td class="ev">Delivered</td><td class="msg">212 rows, 2 prices changed, flagged as usual.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Illustrative example. Alerts go to the email you choose; a site that cannot be repaired is paused and explained, not billed as a delivery.</p>
+    </section>
+
+    <!-- page 6: public data only -->
+    <div class="brk" aria-hidden="true"><span>Page 6 of 6</span></div>
+    <section class="page page--solid" id="public" aria-labelledby="public-h">
+      <div class="page__head">
+        <h2 id="public-h">Public pages only. No logins, ever.</h2>
+        <p>We collect what anyone can see without an account, and we respect each site's terms and robots rules. If a site cannot be collected that way, we tell you before any work starts.</p>
+      </div>
+      <table class="pub">
+        <caption class="sr-only">What Rowcrop collects and never collects</caption>
+        <thead><tr><th scope="col"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>We collect</th><th scope="col"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>We never collect</th></tr></thead>
+        <tbody>
+          <tr><td>Prices, stock and ratings shown on public product pages</td><td>Anything behind a login, an account or a paywall</td></tr>
+          <tr><td>Product names, specs, categories and image URLs</td><td>Personal data about private individuals</td></tr>
+          <tr><td>Business listings and companies' public contact pages</td><td>Pages a site's terms or robots rules put off limits</td></tr>
+          <tr><td>Your own store's pages, to compare like with like</td><td>Content that needs a CAPTCHA solved to be seen</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- request -->
+    <div class="brk" aria-hidden="true"><span>Request form</span></div>
+    <section class="page" id="sample" aria-labelledby="sample-h">
+      <div class="req-wrap">
+        <div class="page__head">
+          <h2 id="sample-h">Request a free sample.</h2>
+          <p>Send one website and the columns you want. We reply by email with a sample of your table, or with questions about the columns.</p>
+          <div class="req-side">
+            <ul>
+              <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span>About 30 real rows from the site you name.</span></li>
+              <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg><span>Your columns, in the format you pick.</span></li>
+              <li><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg><span>Public pages only. If the site needs a login, we say so.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <form class="req" id="req" novalidate>
+          <div class="fld">
+            <label for="f-url">Website to collect</label>
+            <input class="inp" id="f-url" name="url" type="url" inputmode="url" autocomplete="url" placeholder="e.g. https://store.example/collections/all" required aria-describedby="e-url">
+            <p class="err" id="e-url" hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>Add the full address of a public page, starting with https://</span></p>
+          </div>
+          <div class="fld">
+            <label for="f-cols">Columns you need</label>
+            <textarea class="inp" id="f-cols" name="columns" rows="3" placeholder="e.g. product name, price as shown, in stock yes or no, rating" required aria-describedby="h-cols e-cols"></textarea>
+            <p class="hint" id="h-cols">Plain words are fine. We confirm every column in the sample.</p>
+            <p class="err" id="e-cols" hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>List at least one column, for example "price".</span></p>
+          </div>
+          <fieldset class="fld">
+            <legend>How often</legend>
+            <div class="opts">
+              <label class="opt"><input type="radio" name="often" value="Once" checked><span>Once</span></label>
+              <label class="opt"><input type="radio" name="often" value="Daily"><span>Daily</span></label>
+              <label class="opt"><input type="radio" name="often" value="Weekly"><span>Weekly</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="fld">
+            <legend>Deliver as</legend>
+            <div class="opts opts--4">
+              <label class="opt"><input type="radio" name="format" value="CSV" checked><span>CSV</span></label>
+              <label class="opt"><input type="radio" name="format" value="Excel"><span>Excel</span></label>
+              <label class="opt"><input type="radio" name="format" value="Google Sheets"><span>Google Sheets</span></label>
+              <label class="opt"><input type="radio" name="format" value="Database"><span>Database</span></label>
+            </div>
+          </fieldset>
+          <div class="fld">
+            <label for="f-mail">Your email</label>
+            <input class="inp" id="f-mail" name="email" type="email" autocomplete="email" placeholder="e.g. you@yourstore.example" required aria-describedby="e-mail">
+            <p class="err" id="e-mail" hidden><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>Add an email address so we can send the sample.</span></p>
+          </div>
+          <div class="req__send">
+            <button class="act" type="submit">Request a free sample <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <p>No payment details asked. If the sample is not what you need, you owe nothing. Portfolio demo: this form checks entries but sends nothing.</p>
+          </div>
+          <div class="receipt" id="receipt" role="status" aria-live="polite" hidden></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="brk" aria-hidden="true"><span>End of report</span></div>
+    <div class="foot__grid">
+      <div class="foot__brand">
+        <strong><svg class="i" aria-hidden="true"><use href="#i-logo"/></svg>Rowcrop</strong>
+        <p>Public web data, collected for you and delivered as clean tables.</p>
+      </div>
+      <ul class="foot__links">
+        <li><a href="#how">How a job runs</a></li>
+        <li><a href="#arrives">What arrives</a></li>
+        <li><a href="#formats">Formats</a></li>
+        <li><a href="#alerts">When a site changes</a></li>
+        <li><a href="#public">Public data only</a></li>
+        <li><a href="#sample">Request a free sample</a></li>
+      </ul>
+      <p class="foot__demo">Portfolio demo. Fictional brand.<span>All stores, products and figures on this page are invented.</span></p>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const job = document.querySelector(".job");
+  const table = job.querySelector(".job__table");
+  const rows = [...table.tBodies[0].rows];
+  const foot = table.tFoot.querySelector("td");
+  const timers = [];
+  const LINE = 110;
+
+  function band() {
+    let i = 0;
+    const delivered = job.classList.contains("is-delivered");
+    rows.forEach((r) => {
+      const gone = delivered && r.classList.contains("dup");
+      r.classList.toggle("is-band", !gone && i % 2 === 0);
+      if (!gone) i++;
+    });
+  }
+  table.classList.add("js-band");
+  band();
+
+  function stop() { timers.forEach(clearTimeout); timers.length = 0; }
+  function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
+
+  function run() {
+    stop();
+    rows.forEach((r) => r.classList.remove("is-printed", "is-struck", "is-lifted"));
+    foot.classList.remove("is-printed");
+    if (reduce.matches) { job.classList.remove("is-running"); return; }
+    job.classList.add("is-running");
+    let t = 280;
+    rows.forEach((r) => { at(t, () => r.classList.add("is-printed")); t += LINE; });
+    t += 220;
+    rows.filter((r) => r.classList.contains("dup")).forEach((r) => { at(t, () => r.classList.add("is-struck")); t += 190; });
+    t += 80;
+    rows.filter((r) => r.classList.contains("chg")).forEach((r) => { at(t, () => r.classList.add("is-lifted")); t += 300; });
+    at(t + 60, () => foot.classList.add("is-printed"));
+    at(t + 520, () => job.classList.remove("is-running"));
+  }
+
+  // hide rows before first paint, then print once fonts are in
+  if (!reduce.matches) job.classList.add("is-running");
+  const fontsIn = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.race([fontsIn, new Promise((r) => setTimeout(r, 700))]).then(run);
+
+  job.querySelector("[data-replay]").addEventListener("click", () => {
+    setView("report");
+    run();
+  });
+
+  const viewBtns = [...job.querySelectorAll("[data-view]")];
+  const dupRows = rows.filter((r) => r.classList.contains("dup"));
+  const viewStatus = document.getElementById("view-status");
+  let hideTimer = 0;
+  function setView(v) {
+    clearTimeout(hideTimer);
+    const delivered = v === "delivered";
+    viewBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+    if (delivered) {
+      job.classList.add("is-delivered");
+      band();
+      hideTimer = setTimeout(() => dupRows.forEach((r) => { r.hidden = true; }), reduce.matches ? 0 : 460);
+      viewStatus.textContent = "Showing the delivered file: 11 rows.";
+    } else {
+      dupRows.forEach((r) => { r.hidden = false; });
+      requestAnimationFrame(() => { job.classList.remove("is-delivered"); band(); });
+      viewStatus.textContent = "Showing the run report: 14 rows read, 3 removed, 2 changed, 1 new.";
+    }
+  }
+  viewBtns.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+
+  // formats: tabs
+  const tabs = [...document.querySelectorAll('.fmt [role="tab"]')];
+  const fileLine = document.getElementById("fmt-file");
+  const cap = document.getElementById("fmt-cap");
+  const caps = {
+    "p-csv": "UTF-8, comma separated, one header row. Empty cells stay empty; decimals always use a point.",
+    "p-xlsx": "An .xlsx with typed columns: prices are numbers, in_stock is TRUE or FALSE, read_at is a real date. A second sheet lists what changed.",
+    "p-sheets": "Written into the spreadsheet you share with us. The Changes tab keeps every price move with the date it happened.",
+    "p-db": "Shown for Postgres. MySQL gets ON DUPLICATE KEY UPDATE and BigQuery a MERGE; either way a re-run updates rows instead of duplicating them."
+  };
+  function select(tab, focus) {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      const p = document.getElementById(t.getAttribute("aria-controls"));
+      p.hidden = !on;
+      if (on) { fileLine.textContent = p.dataset.file; cap.textContent = caps[p.id]; }
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => select(t));
+    t.addEventListener("keydown", (e) => {
+      let n = null;
+      if (e.key === "ArrowRight") n = tabs[(i + 1) % tabs.length];
+      if (e.key === "ArrowLeft") n = tabs[(i - 1 + tabs.length) % tabs.length];
+      if (e.key === "Home") n = tabs[0];
+      if (e.key === "End") n = tabs[tabs.length - 1];
+      if (n) { e.preventDefault(); select(n, true); }
+    });
+  });
+
+  // request form
+  const form = document.getElementById("req");
+  let jobNo = 413;
+  const receipt = document.getElementById("receipt");
+  const fields = [
+    { el: form.url, err: "e-url", ok: (v) => /^https?:\/\/[^\s\/.]+(\.[^\s\/.]+)+(\/\S*)?$/.test(v.trim()) },
+    { el: form.columns, err: "e-cols", ok: (v) => v.trim().length > 1 },
+    { el: form.email, err: "e-mail", ok: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) }
+  ];
+  function check(f) {
+    const good = f.ok(f.el.value);
+    f.el.setAttribute("aria-invalid", String(!good));
+    document.getElementById(f.err).hidden = good;
+    return good;
+  }
+  fields.forEach((f) => f.el.addEventListener("blur", () => { if (f.el.value) check(f); }));
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const bad = fields.filter((f) => !check(f));
+    if (bad.length) { bad[0].el.focus(); receipt.hidden = true; return; }
+    let host = "";
+    try { host = new URL(form.url.value.trim()).hostname; } catch (_) { host = form.url.value.trim(); }
+    const cols = form.columns.value.split(/[,\n;\t]+/).map((s) => s.trim()).filter(Boolean).length;
+    const lines = [
+      ["Request printed", "job " + String(jobNo++).padStart(4, "0")],
+      ["Source", host],
+      ["Columns", cols + (cols === 1 ? " column" : " columns")],
+      ["Runs", form.often.value.toLowerCase()],
+      ["Deliver as", form.format.value],
+      ["Status", "not sent: this is a portfolio demo"]
+    ];
+    receipt.replaceChildren(...lines.map(([k, v]) => {
+      const p = document.createElement("p");
+      const b = document.createElement("b");
+      b.textContent = k + ": ";
+      p.append(b, document.createTextNode(v));
+      return p;
+    }));
+    receipt.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>

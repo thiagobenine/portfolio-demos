@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proofload: load test reports for HTTP APIs</title>
+<meta name="description" content="Proofload load tests your API on staging at a multiple of your real peak and hands you a written report: percentiles, error rate, bottlenecks ranked by impact, and a regression gate for CI. Fictional brand, portfolio demo.">
+<meta name="theme-color" content="#373F43">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wdth,wght@62..100,500..800&family=Saira+Stencil:wdth,wght@75..100,700..800&family=Public+Sans:ital,wght@0,400..700;1,400&family=Azeret+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --enamel:#373F43; --enamel-deep:#2A3033; --enamel-rule:#636A6C; --enamel-grid:#4F565A;
+  --on-enamel:#FFFFFF; --on-enamel-2:#C5CCD0;
+  --plate:#E5E8E9; --plate-2:#D3D8DA; --plate-3:#DDE1E3; --plate-rule:#9DA5A9;
+  --ink:#16191B; --ink-2:#475054;
+  --fail:#C4161C; --fail-deep:#9C1016;
+  --tag:#F3F4F2; --rivet:#B9BFC2; --rivet-shade:#8F979B; --grommet:#A9B0B3; --fail-on-ink:#FF8A80;
+  --r-data:4px;
+
+  --f-display:"Saira","Arial Narrow",sans-serif;
+  --f-stencil:"Saira Stencil","Saira","Arial Narrow",sans-serif;
+  --f-text:"Public Sans","Helvetica Neue",Arial,sans-serif;
+  --f-code:"Azeret Mono",ui-monospace,Menlo,monospace;
+
+  --t-display:clamp(2.25rem, min(5vw, 8svh), 4.5rem);
+  --t-wordmark:1.625rem; --t-stamp:2.625rem; --t-stencil-s:1.25rem; --t-mini:0.6875rem; --t-numeral:clamp(5rem, 3rem + 7vw, 11rem);
+  --t-stencil-xl:clamp(2.25rem, 1.2rem + 3.6vw, 5rem);
+  --t-stencil-l:clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem);
+  --t-stencil-m:1.5rem;
+  --t-h2:clamp(2.25rem, 1.3rem + 3vw, 4.25rem);
+  --t-h3:clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem);
+  --t-field:1.125rem;
+  --t-label:0.75rem;
+  --t-button:1rem;
+  --t-lede:clamp(1.125rem, 1rem + 0.4vw, 1.3125rem);
+  --t-body:1.0625rem;
+  --t-small:0.875rem;
+  --t-data:0.9375rem;
+  --t-code:0.8125rem;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px; --s-10:128px;
+  --gutter:clamp(16px, 3.4vw, 48px);
+  --maxw:1344px;
+  --r-plate:3px; --r-tag:5px; --r-control:2px;
+  --shadow-plate:0 1px 0 rgba(22,25,27,.35), 0 14px 28px -18px rgba(22,25,27,.55);
+  --shadow-tag:drop-shadow(0 10px 9px rgba(22,25,27,.35)) drop-shadow(0 2px 1.5px rgba(22,25,27,.25));
+  --shadow-press:inset 0 2px 0 rgba(22,25,27,.2);
+  --dur-fast:120ms; --dur-base:200ms; --dur-strike:340ms; --dur-draw:900ms;
+  --ease-out:cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-strike:cubic-bezier(0.2, 0.9, 0.1, 1);
+  --focus:var(--enamel-deep);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scrollbar-color:var(--enamel-deep) var(--plate-2)}
+body{margin:0;background:var(--enamel);color:var(--ink);font-family:var(--f-text);font-size:var(--t-body);line-height:1.6;font-kerning:normal;caret-color:var(--enamel-deep);text-rendering:optimizeLegibility}
+::selection{background:var(--enamel);color:#fff}
+.on-enamel ::selection,.on-enamel::selection{background:var(--plate);color:var(--ink)}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:var(--plate-2)}
+::-webkit-scrollbar-thumb{background:var(--enamel-deep);border:3px solid var(--plate-2);border-radius:2px}
+img,svg{display:block}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:4px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.on-enamel{--focus:#FFFFFF}
+p{margin:0}
+h1,h2,h3{margin:0;font-weight:800;text-wrap:balance}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:var(--gutter);top:-80px;background:var(--plate);color:var(--ink);padding:var(--s-3) var(--s-4);z-index:20;font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-small)}
+.skip:focus{top:var(--s-3)}
+.ico{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- type roles ---------- */
+.label{font-family:var(--f-display);font-size:var(--t-label);font-weight:600;font-variation-settings:"wdth" 100;letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
+.field{font-family:var(--f-display);font-size:var(--t-field);font-weight:700;font-variation-settings:"wdth" 80;line-height:1.2}
+.stencil{font-family:var(--f-stencil);font-weight:800;font-variation-settings:"wdth" 75;line-height:1;letter-spacing:0}
+.small{font-size:var(--t-small);line-height:1.5}
+[data-m]{color:var(--ink-2)}
+.vnote{margin-top:6px}
+.legend .lk{width:16px;height:16px;color:var(--ink-2)}
+.legend .lk.bad{color:var(--fail)}
+.cinote{margin-top:var(--s-4);max-width:58ch}
+.ic{font-family:var(--f-code);font-size:var(--t-code)}
+.linkbtn{background:none;border:0;padding:0;color:var(--ink);cursor:pointer}
+.muted-e{color:var(--on-enamel-2)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-3);min-height:48px;padding:0 var(--s-5);border:0;border-radius:var(--r-control);font-family:var(--f-display);font-size:var(--t-button);font-weight:700;font-variation-settings:"wdth" 80;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;cursor:pointer;background:var(--plate);color:var(--ink);box-shadow:0 1px 0 rgba(22,25,27,.4);transition:transform var(--dur-fast) var(--ease-out),background-color var(--dur-fast) var(--ease-out),box-shadow var(--dur-fast) var(--ease-out)}
+.btn:hover{background:#fff;transform:translateY(-1px);box-shadow:0 3px 0 rgba(22,25,27,.35)}
+.btn:active{transform:translateY(1px);box-shadow:var(--shadow-press);background:var(--plate-2)}
+.btn .ico{transition:transform var(--dur-fast) var(--ease-out)}
+.btn:hover .ico{transform:translateX(2px)}
+.btn--enamel{background:var(--enamel);color:#fff}
+.btn--enamel:hover{background:var(--enamel-deep)}
+.btn--enamel:active{background:var(--enamel-deep)}
+.btn[disabled]{background:var(--plate-3);color:var(--ink-2);cursor:not-allowed;transform:none;box-shadow:none}
+.link{display:inline-flex;align-items:center;gap:var(--s-2);font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;letter-spacing:.04em;text-transform:uppercase;font-size:var(--t-button);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px;min-height:48px}
+.link:hover{text-decoration-thickness:2px}
+
+/* ---------- column rules (SSTR) ---------- */
+.cols{position:absolute;top:0;bottom:0;left:var(--gutter);right:var(--gutter);display:grid;grid-template-columns:repeat(12,1fr);pointer-events:none;z-index:0}
+.cols i{border-left:1px solid var(--enamel-grid)}
+.cols i:last-child{border-right:1px solid var(--enamel-grid)}
+.wrap{position:relative;z-index:1;max-width:none}
+
+/* ---------- running head ---------- */
+.head{position:sticky;top:0;z-index:10;background:var(--enamel);color:var(--on-enamel);padding:0 var(--gutter)}
+.head .wrap{display:grid;grid-template-columns:repeat(12,1fr);align-items:center;min-height:68px;padding:var(--s-2) 0;border-bottom:1px solid var(--enamel-rule)}
+.brand{grid-column:1 / span 3;display:flex;align-items:baseline;gap:var(--s-3);padding-left:var(--s-3);text-decoration:none}
+.brand .stencil{font-size:var(--t-wordmark);letter-spacing:.02em}
+.head .desc{grid-column:4 / span 5;padding-left:var(--s-3);color:var(--on-enamel-2);font-size:var(--t-small)}
+.pager{grid-column:9 / span 4;justify-self:end;display:flex;align-items:center;gap:var(--s-4);padding-right:var(--s-3)}
+.pager .label{color:var(--on-enamel-2);white-space:nowrap}
+.pager #pager-now{color:#fff}
+.btn--sm{min-height:40px;padding:0 var(--s-4);font-size:.875rem}
+#head-cta{display:none}
+.head.stuck #head-cta{display:inline-flex}
+.head.stuck .pg-id{display:none}
+
+/* ---------- cover ---------- */
+.cover{position:relative;background:var(--enamel);color:var(--on-enamel);padding:0 var(--gutter) var(--s-7);display:flex;flex-direction:column}
+.cover .wrap{display:grid;grid-template-columns:repeat(12,1fr);align-content:start;flex:1}
+.titleblock{grid-column:1 / -1;position:relative}
+.cover h1{font-family:var(--f-display);font-size:var(--t-display);font-weight:800;font-variation-settings:"wdth" 62;line-height:.9;letter-spacing:-.01em;text-transform:uppercase}
+.cover h1 .tl{display:block;padding:.12em var(--s-3) .04em;border-bottom:1px solid var(--enamel-rule);white-space:nowrap}
+.cover h1 .st{font-family:var(--f-stencil);font-variation-settings:"wdth" 75;font-weight:800;color:var(--plate);letter-spacing:0}
+.colophon{position:absolute;top:0;bottom:0;left:75%;right:0;margin:0;display:grid;grid-template-rows:repeat(3,1fr)}
+.colophon div{padding:var(--s-3);display:flex;flex-direction:column;justify-content:flex-start;gap:2px}
+.colophon dt{color:var(--on-enamel-2)}
+.colophon dd{margin:0;font-size:var(--t-small);line-height:1.4;color:#fff}
+.ledeRow{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,1fr);align-items:end;padding:var(--s-5) 0 var(--s-5)}
+.lede{grid-column:1 / span 8;padding:0 var(--s-3);font-size:var(--t-lede);line-height:1.5;max-width:58ch}
+.actions{grid-column:9 / span 4;display:flex;align-items:center;gap:var(--s-5);flex-wrap:wrap;padding-left:var(--s-3)}
+.actions .link{color:#fff}
+
+/* ---------- plates ---------- */
+.plate{position:relative;background:var(--plate);color:var(--ink);border-radius:var(--r-plate);box-shadow:var(--shadow-plate);container-type:inline-size}
+.plate::before,.plate::after{content:"";position:absolute;left:14px;width:6px;height:6px;border-radius:50%;background:var(--rivet);box-shadow:0 0 0 1px var(--rivet-shade),calc(100cqw - 34px) 0 0 0 var(--rivet),calc(100cqw - 34px) 0 0 1px var(--rivet-shade);pointer-events:none}
+.plate::before{top:14px}
+.plate::after{bottom:14px}
+
+/* nameplate */
+.nameplate{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,1fr);padding:var(--s-4) var(--s-6);margin:var(--s-2) 0 0}
+.np{padding:var(--s-3) var(--s-4);border-left:1px solid var(--plate-rule);display:flex;flex-direction:column;gap:6px;min-width:0}
+.np:first-child,.np.row2.first{border-left:0}
+.np dt{color:var(--ink-2)}
+.np dd{margin:0}
+.np .field{overflow-wrap:anywhere}
+.np .sub{display:block;margin-top:4px;font-size:var(--t-small);color:var(--ink-2);line-height:1.35}
+.np.row1{border-bottom:1px solid var(--plate-rule)}
+.np.c2{grid-column:span 2}.np.c3{grid-column:span 3}
+.np .stencil{font-size:var(--t-stencil-l);color:var(--ink)}
+.np .stencil.proof{color:var(--enamel-deep)}
+.np.verdict{position:relative;grid-column:10 / span 3;grid-row:1 / span 2;border-left:0}
+.np.verdict dd{margin:0}
+.np.row2.c3{grid-column:span 3}
+
+/* inspection tag */
+.tagwrap{position:absolute;right:0;top:-6px;width:224px;filter:var(--shadow-tag);transform:rotate(-4deg);transform-origin:50% 0;z-index:3}
+.tag{position:relative;background:var(--tag);color:var(--ink);border-radius:var(--r-tag);clip-path:polygon(22px 0,calc(100% - 22px) 0,100% 22px,100% 100%,0 100%,0 22px);padding:40px var(--s-4) var(--s-4)}
+.tag .hole{position:absolute;top:12px;left:50%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--plate);box-shadow:0 0 0 4px var(--grommet),inset 0 2px 0 rgba(22,25,27,.25)}
+.tag .band{margin:0 calc(-1 * var(--s-4));padding:6px var(--s-4);background:var(--enamel);color:#fff;display:flex;justify-content:space-between;align-items:center}
+.tag .band.fail{background:var(--fail)}
+.tag .stamp{display:block;font-size:var(--t-stamp);margin-top:var(--s-3);color:var(--enamel-deep)}
+.tag .at{display:block;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;font-size:1.0625rem;letter-spacing:.02em;margin-top:2px}
+.tag .facts{font-size:.8125rem;line-height:1.45;margin-top:var(--s-2);color:var(--ink-2)}
+.tag .first{display:flex;gap:6px;align-items:flex-start;font-size:.8125rem;line-height:1.4;margin-top:var(--s-2);padding-top:var(--s-2);border-top:1px solid var(--plate-rule);color:var(--fail)}
+.tag .first .ico{width:16px;height:16px;margin-top:1px}
+.punch{margin-top:var(--s-3);display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
+.punch span{font-family:var(--f-display);font-weight:600;font-size:var(--t-mini);text-align:center;line-height:1;padding:4px 0;border:1px solid var(--plate-rule);border-radius:2px;color:var(--ink-2)}
+.punch span.p{background:var(--ink);border-color:var(--ink);color:var(--tag);border-radius:50%}
+.punch.yr{grid-template-columns:repeat(4,1fr);margin-top:2px}
+.wire{position:absolute;right:97px;top:-22px;width:30px;height:30px;border:2px solid var(--rivet-shade);border-radius:50%;z-index:4}
+.wire::before{content:"";position:absolute;left:50%;top:-5px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--rivet);box-shadow:0 0 0 1px var(--rivet-shade)}
+
+/* strike */
+.strike{display:inline-block}
+.is-struck{animation:strike var(--dur-strike) var(--ease-strike) both}
+@keyframes strike{0%{transform:scale(1.35) rotate(-6deg);opacity:0;filter:blur(3px)}60%{opacity:1;filter:blur(0)}100%{transform:none;opacity:1;filter:none}}
+
+/* contents */
+.contents{grid-column:1 / -1;display:flex;align-items:center;gap:var(--s-5);padding:var(--s-4) var(--s-3) 0;padding-right:260px}
+.contents ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-5)}
+.contents a{display:inline-flex;align-items:baseline;gap:var(--s-2);text-decoration:none;min-height:44px;align-items:center;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.03em;font-size:1rem;color:#fff;border-bottom:1px solid transparent}
+.contents a:hover{border-bottom-color:#fff}
+.contents a .stencil{font-size:var(--t-stencil-s);color:var(--on-enamel-2)}
+.contents .pg{font-family:var(--f-text);font-weight:400;letter-spacing:0;text-transform:none;font-size:var(--t-small);color:var(--on-enamel-2)}
+
+/* ---------- report pages ---------- */
+.page{padding:var(--s-8) var(--gutter) 0}
+.page > .plate{max-width:var(--maxw);margin:0 auto;padding:var(--s-8) var(--s-7) 0}
+.ph{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5)}
+.ph h2{grid-column:1 / -1;display:flex;align-items:baseline;gap:var(--s-4);font-family:var(--f-display);font-size:var(--t-h2);font-variation-settings:"wdth" 62;line-height:.95;text-transform:uppercase;padding-bottom:var(--s-4);border-bottom:3px solid var(--ink)}
+.ph h2 .stencil{color:var(--enamel);font-size:1em}
+.ph .sum{grid-column:1 / span 8;margin-top:var(--s-5);font-size:var(--t-lede);line-height:1.5;max-width:58ch}
+.ph .aside{grid-column:10 / span 3;margin-top:var(--s-5);color:var(--ink-2);font-size:var(--t-small)}
+.pfoot{display:flex;justify-content:space-between;gap:var(--s-4);flex-wrap:wrap;margin-top:var(--s-8);padding:var(--s-4) 0 var(--s-6);border-top:1px solid var(--plate-rule);color:var(--ink-2)}
+.block{margin-top:var(--s-7)}
+.block h3{font-family:var(--f-display);font-size:var(--t-h3);font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase;line-height:1.1}
+.block .note{margin-top:var(--s-2);color:var(--ink-2);font-size:var(--t-small);max-width:60ch}
+.body{max-width:68ch}
+
+/* state marks */
+.mark{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.04em;font-size:.875rem;line-height:1}
+.mark .ico{width:18px;height:18px}
+.mark.ok{color:var(--enamel-deep)}
+.mark.bad{color:var(--fail)}
+.mark.bad .txt{text-decoration:line-through;text-decoration-thickness:2px}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:var(--t-data)}
+.tbl caption{text-align:left;caption-side:top;padding-bottom:var(--s-3)}
+.tbl th{font-family:var(--f-display);font-size:var(--t-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--ink-2);background:var(--plate-2);padding:10px var(--s-3);vertical-align:bottom}
+.tbl td{padding:var(--s-3);border-bottom:1px solid var(--plate-rule);vertical-align:top;line-height:1.45}
+.tbl td.n,.tbl th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tbody tr:hover td{background:var(--plate-3)}
+.tbl .sc{font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;font-size:1rem;letter-spacing:.02em}
+.tbl .res{display:flex;flex-direction:column;gap:6px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* calculator (signature) */
+.sizer{margin-top:var(--s-7);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);row-gap:var(--s-5);background:var(--plate-2);padding:var(--s-6);border-radius:var(--r-plate)}
+.sizer .in{grid-column:1 / span 5;display:flex;flex-direction:column;gap:var(--s-5)}
+.sizer .out{grid-column:6 / span 7;position:relative;display:flex;flex-direction:column;gap:var(--s-3);padding-left:var(--s-6)}
+.sizer .out::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--plate-rule)}
+.fld{display:flex;flex-direction:column;gap:var(--s-2)}
+.fld label,.fld legend{color:var(--ink-2)}
+.inputbox{display:flex;align-items:stretch;background:var(--plate);border:1px solid var(--ink-2);border-radius:var(--r-control);max-width:320px}
+.inputbox input{flex:1;min-width:0;border:0;background:transparent;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;font-size:1.5rem;padding:0 var(--s-4);height:52px;color:var(--ink);font-variant-numeric:tabular-nums}
+.inputbox input:focus{outline:none}
+.inputbox:focus-within{outline:3px solid var(--enamel-deep);outline-offset:3px}
+.inputbox .unit{display:flex;align-items:center;padding:0 var(--s-4);border-left:1px solid var(--plate-rule);font-family:var(--f-display);font-weight:600;font-size:var(--t-small);letter-spacing:.06em;color:var(--ink-2)}
+.inputbox.err{border-color:var(--fail)}
+.err-msg{color:var(--fail);font-size:var(--t-small);min-height:1.5em}
+.seg{display:flex;gap:0;border:1px solid var(--ink-2);border-radius:var(--r-control);width:max-content;background:var(--plate)}
+.seg fieldset{border:0;margin:0;padding:0}
+.seg label{position:relative;display:flex;align-items:center;justify-content:center;min-width:72px;min-height:48px;padding:0 var(--s-4);cursor:pointer;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;font-size:1.125rem;color:var(--ink);border-left:1px solid var(--plate-rule)}
+.seg label:first-of-type{border-left:0}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;color:var(--ink)}
+.seg label:has(input:checked){background:var(--ink);color:var(--plate)}
+.seg label:has(input:focus-visible){outline:3px solid var(--enamel-deep);outline-offset:2px;z-index:1}
+fieldset.fld{border:0;margin:0;padding:0;min-width:0}
+.rating{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-6);align-items:baseline}
+.rating .stencil{font-size:var(--t-stencil-xl);white-space:nowrap}
+.rating .proof{color:var(--enamel-deep)}
+.rating .lab{display:block;margin-bottom:6px;color:var(--ink-2)}
+.littles{font-size:var(--t-body);max-width:56ch}
+.littles b{font-weight:700}
+
+.profiles{margin-top:var(--s-6);display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-5)}
+.prof h3{font-family:var(--f-display);font-size:var(--t-stencil-s);font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase}
+.prof p{margin-top:var(--s-2);font-size:var(--t-small);color:var(--ink-2);line-height:1.5}
+.prof .tot{margin-top:var(--s-2);font-size:var(--t-small);color:var(--ink)}
+.chart{position:relative;margin-top:var(--s-3)}
+.chart svg{width:100%;height:auto;overflow:visible}
+.mix{margin-top:var(--s-6);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5)}
+.mix .t{grid-column:1 / span 4}
+.mix .bars{grid-column:5 / span 8;display:flex;flex-direction:column;gap:6px;list-style:none;margin:0;padding:0}
+.mix .bars li{display:grid;grid-template-columns:minmax(150px, 13rem) 1fr;align-items:center;gap:var(--s-4);font-size:var(--t-small)}
+.mix code{font-family:var(--f-code);font-size:var(--t-code)}
+.bartrack{position:relative;height:22px;display:flex;align-items:center}
+.bartrack .bar{height:14px;background:var(--ink);border-radius:0 var(--r-data) var(--r-data) 0;min-width:2px}
+.bartrack .v{margin-left:var(--s-2);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+
+/* charts common */
+.ax text{font-family:var(--f-text);font-size:12px;fill:var(--ink-2)}
+.ax line,.ax path{stroke:var(--plate-rule);stroke-width:1;shape-rendering:crispEdges}
+.ax .base{stroke:var(--ink-2)}
+.ref line{stroke:var(--ink-2);stroke-width:1;stroke-dasharray:4 4;shape-rendering:crispEdges}
+.ref text{font-family:var(--f-display);font-size:12px;font-weight:600;letter-spacing:.06em;fill:var(--ink-2);text-transform:uppercase}
+.s-ink{stroke:var(--ink);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.s-fail{stroke:var(--fail);stroke-width:2;fill:none;stroke-dasharray:7 5;stroke-linejoin:round;stroke-linecap:round}
+.s-prof{stroke:var(--ink);stroke-width:2;fill:none;stroke-linejoin:miter}
+.a-prof{fill:var(--enamel);fill-opacity:.12;stroke:none}
+.dot-ink{fill:var(--ink);stroke:var(--plate);stroke-width:2}
+.dot-fail{stroke:var(--fail);stroke-width:2.5;fill:none}
+.lbl{font-family:var(--f-display);font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;fill:var(--ink)}
+.lbl.f{fill:var(--fail)}
+.lbl.s{font-family:var(--f-text);font-weight:500;text-transform:none;letter-spacing:0;fill:var(--ink-2);font-size:12px}
+.xh{stroke:var(--ink);stroke-width:1;shape-rendering:crispEdges}
+.hit{fill:transparent;cursor:crosshair}
+.hit:focus{outline:none}
+.chart:focus-within .hitframe{stroke:var(--enamel-deep);stroke-width:3}
+.hitframe{fill:none;stroke:none}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--plate);padding:var(--s-2) var(--s-3);border-radius:var(--r-control);font-size:.8125rem;line-height:1.4;min-width:150px;z-index:5;opacity:0;transform:translateY(4px);transition:opacity var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out)}
+.tip.on{opacity:1;transform:none}
+.tip .h{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:var(--t-mini);color:var(--plate-2);margin-bottom:4px}
+.tip .r{display:flex;align-items:center;gap:var(--s-2);justify-content:space-between}
+.tip .r b{font-variant-numeric:tabular-nums;font-weight:700}
+.tip .k{display:inline-block;width:14px;height:0;border-top:2px solid #fff;margin-right:6px}
+.tip .k.f{border-top:2px dashed var(--fail-on-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-5);list-style:none;margin:var(--s-3) 0 0;padding:0;font-size:var(--t-small);color:var(--ink)}
+.legend li{display:inline-flex;align-items:center;gap:var(--s-2)}
+.legend .k{width:26px;height:0;border-top:2px solid var(--ink)}
+.legend .k.f{border-top:2px dashed var(--fail)}
+.legend .k.r{border-top:1px dashed var(--ink-2)}
+.bracket{font-family:var(--f-display);font-weight:600;font-variation-settings:"wdth" 100;letter-spacing:.02em;font-size:var(--t-small);color:var(--ink-2)}
+.bracket b{color:var(--ink);font-weight:700}
+details.twin{margin-top:var(--s-4)}
+details.twin summary{cursor:pointer;display:inline-flex;align-items:center;gap:var(--s-2);min-height:44px;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.04em;font-size:.875rem;color:var(--ink);list-style:none}
+details.twin summary::-webkit-details-marker{display:none}
+details.twin summary .ico{transition:transform var(--dur-base) var(--ease-out)}
+details.twin[open] summary .ico{transform:rotate(90deg)}
+details.twin .scroll{margin-top:var(--s-2)}
+
+.knee{margin-top:var(--s-6);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5)}
+.knee .c{grid-column:1 / span 8}
+.knee .side{grid-column:9 / span 4;display:flex;flex-direction:column;gap:var(--s-5);padding-top:var(--s-2)}
+.delta .stencil{font-size:var(--t-stencil-l);display:block;margin-top:6px}
+.delta p{margin-top:6px;font-size:var(--t-small);color:var(--ink-2)}
+.defs{margin:0;display:grid;grid-template-columns:auto 1fr;gap:var(--s-2) var(--s-4);font-size:var(--t-small)}
+.defs dt{font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;font-size:1rem}
+.defs dd{margin:0;color:var(--ink-2)}
+
+/* chapter band (AI in Design Report) */
+.band{position:relative;margin-top:var(--s-8);padding:var(--s-9) var(--gutter) var(--s-8);background:var(--enamel-deep);color:#fff}
+.band .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--s-3);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);align-items:start}
+.band .numeral{grid-column:1 / span 2;font-size:var(--t-numeral);line-height:.8;color:var(--on-enamel-2)}
+.band h2{grid-column:3 / span 5;font-family:var(--f-display);font-size:var(--t-h2);font-variation-settings:"wdth" 62;line-height:.95;text-transform:uppercase}
+.band .bsum{grid-column:8 / span 5;display:flex;flex-direction:column;gap:var(--s-5)}
+.band .bsum p{font-size:var(--t-lede);line-height:1.5;color:#fff}
+.band ol{margin:0;padding:0;list-style:none;border-top:1px solid var(--enamel-rule)}
+.band ol li{display:flex;gap:var(--s-4);align-items:baseline;padding:var(--s-3) 0;border-bottom:1px solid var(--enamel-rule)}
+.band ol .stencil{font-size:var(--t-stencil-s);color:var(--on-enamel-2);min-width:1.25rem}
+.band ol a{text-decoration:none;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.03em;font-size:1.125rem}
+.band ol a:hover{text-decoration:underline}
+.band ol .c{margin-left:auto;color:var(--on-enamel-2);font-size:var(--t-small);text-align:right}
+.page.after-band{padding-top:0;margin-top:calc(-1 * var(--s-6))}
+
+/* bottlenecks */
+.bn{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);row-gap:var(--s-5);padding:var(--s-7) 0;border-bottom:1px solid var(--plate-rule);scroll-margin-top:var(--s-5)}
+.bn:first-of-type{padding-top:var(--s-2)}
+.bn .id{grid-column:1 / span 4}
+.bn .rank{display:flex;align-items:baseline;gap:var(--s-3)}
+.bn .rank .stencil{font-size:var(--t-stencil-xl);color:var(--enamel)}
+.bn .id h3{font-family:var(--f-display);font-size:var(--t-h3);font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase;line-height:1.1}
+.bn .where{margin-top:var(--s-2)}
+.bn .where code{font-family:var(--f-code);font-size:var(--t-code)}
+.bn .cost{margin-top:var(--s-4);padding-top:var(--s-3);border-top:1px solid var(--plate-rule)}
+.bn .cost .label,.bn .fix .verified .label{display:flex;align-items:center;gap:6px}
+.bn .cost .label{color:var(--fail)}
+.bn .cost .label .ico,.bn .fix .verified .label .ico{width:16px;height:16px}
+.bn .cost p{margin-top:6px;font-size:var(--t-small)}
+.bn .ev{grid-column:5 / span 5;min-width:0}
+.bn .ev > .label{color:var(--ink-2);display:block;margin-bottom:var(--s-3)}
+.bn .fix{grid-column:10 / span 3;display:flex;flex-direction:column;gap:var(--s-4);font-size:var(--t-small)}
+.bn .fix .label{color:var(--ink-2);display:block;margin-bottom:4px}
+.bn .fix .verified{padding-top:var(--s-3);border-top:1px solid var(--plate-rule)}
+.bn .fix .verified .label{color:var(--enamel-deep)}
+.bn .fix .verified .stencil{font-size:var(--t-stencil-m);display:block;margin-top:4px}
+.bn .why{margin-top:var(--s-4);font-size:var(--t-small);color:var(--ink);max-width:60ch}
+
+/* anatomy rows (Databricks) */
+.anat{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5)}
+.anat .run{min-width:0}
+.anat .tot{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s-2);border-bottom:2px solid var(--ink);padding-bottom:6px}
+.anat .tot .n{white-space:nowrap}
+.anat .tot .field{font-size:1rem}
+.anat .tot .n{font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.anat .tot.f{border-bottom-color:var(--fail)}
+.anat ul{list-style:none;margin:0;padding:0}
+.anat li{padding:8px 0 6px;border-bottom:1px solid var(--plate-rule);transition:opacity var(--dur-fast) var(--ease-out)}
+.anat .row{display:flex;justify-content:space-between;gap:var(--s-2);font-size:.8125rem;line-height:1.3}
+.anat .row .pct{color:var(--ink-2);margin-left:6px}
+.anat .row .ms{font-variant-numeric:tabular-nums;white-space:nowrap}
+.anat .track{height:4px;background:var(--plate-2);margin-top:6px}
+.anat .fillb{height:4px;background:var(--ink)}
+.anat .fillb.hot{background:var(--fail)}
+.anat:hover li{opacity:.45}
+.anat li:hover,.anat li:focus-within{opacity:1}
+.anat li:focus{outline:none}
+
+/* CI */
+.ci{margin-top:var(--s-6);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);row-gap:var(--s-6)}
+.ci .code{grid-column:1 / span 5;min-width:0}
+.ci .hist{grid-column:6 / span 7;min-width:0}
+pre.cfg{margin:var(--s-3) 0 0;background:var(--plate-2);border-radius:var(--r-plate);padding:var(--s-5);font-family:var(--f-code);font-size:var(--t-code);line-height:1.65;color:var(--ink);overflow-x:auto;tab-size:2}
+pre.cfg .c{color:var(--ink-2)}
+pre.cfg .k{color:var(--enamel-deep);font-weight:600}
+pre.cfg .v{color:var(--ink)}
+.marks{display:flex;gap:0;margin-top:2px}
+
+/* method */
+.steps{margin-top:var(--s-6);border-top:3px solid var(--ink)}
+.step{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);padding:var(--s-5) 0;border-bottom:1px solid var(--plate-rule)}
+.step .no{grid-column:1 / span 1;font-size:var(--t-stencil-l);color:var(--enamel)}
+.step h3{grid-column:2 / span 3;font-family:var(--f-display);font-size:1.375rem;font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase;line-height:1.1;padding-top:4px}
+.step .you,.step .we{font-size:var(--t-small);line-height:1.55}
+.step .you{grid-column:5 / span 4}
+.step .we{grid-column:9 / span 4}
+.step .label{display:block;color:var(--ink-2);margin-bottom:4px}
+.never{margin-top:var(--s-7);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);background:var(--ink);color:var(--plate);border-radius:var(--r-plate);padding:var(--s-6)}
+.never h3{grid-column:1 / span 4;display:flex;gap:var(--s-3);align-items:flex-start;font-family:var(--f-display);font-size:var(--t-h3);font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase;line-height:1.1}
+.never h3 .ico{width:28px;height:28px;margin-top:2px}
+.never ul{grid-column:5 / span 8;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-5)}
+.never li{font-size:var(--t-small);line-height:1.55;color:var(--on-enamel-2)}
+.never li b{display:block;color:#fff;font-family:var(--f-display);font-weight:700;font-variation-settings:"wdth" 80;text-transform:uppercase;letter-spacing:.03em;font-size:1rem;margin-bottom:4px}
+.faq{margin-top:var(--s-7);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5)}
+.faq h3{grid-column:1 / span 4;font-family:var(--f-display);font-size:var(--t-h3);font-weight:700;font-variation-settings:"wdth" 75;text-transform:uppercase;line-height:1.1}
+.faq dl{grid-column:5 / span 8;margin:0}
+.faq dt{font-weight:700;font-size:var(--t-body);padding-top:var(--s-4);border-top:1px solid var(--plate-rule)}
+.faq dt:first-child{border-top:0;padding-top:0}
+.faq dd{margin:var(--s-2) 0 var(--s-4);color:var(--ink-2);max-width:56ch}
+
+/* start */
+.start{position:relative;margin-top:var(--s-8);padding:var(--s-9) var(--gutter) var(--s-8);background:var(--enamel);color:#fff;overflow:hidden}
+.start .cols{top:0;bottom:0}
+.start .wrap{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--s-5);row-gap:var(--s-6)}
+.start .intro{grid-column:1 / span 5;padding-left:var(--s-3)}
+.start h2{font-family:var(--f-display);font-size:var(--t-h2);font-variation-settings:"wdth" 62;line-height:.95;text-transform:uppercase}
+.start .intro p{margin-top:var(--s-5);font-size:var(--t-lede);line-height:1.5;max-width:44ch}
+.pending{display:flex;gap:var(--s-3);align-items:flex-start;margin-top:var(--s-7);padding-top:var(--s-5);border-top:1px solid var(--enamel-rule);max-width:44ch}
+.pending .ico{width:28px;height:28px;margin-top:2px;color:var(--on-enamel-2)}
+.pending .label{display:block;color:var(--on-enamel-2);margin-bottom:6px}
+.pending .stencil{font-size:var(--t-stencil-l);color:#fff}
+.form{grid-column:6 / span 7;padding:var(--s-7) var(--s-7) var(--s-6)}
+.form .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-5)}
+.form .full{grid-column:1 / -1}
+.form .fld label{color:var(--ink-2)}
+.form .fld input{height:52px;border:1px solid var(--ink-2);border-radius:var(--r-control);background:var(--plate-2);padding:0 var(--s-4);font-family:var(--f-text);font-size:1rem;color:var(--ink);width:100%}
+.form .fld input::placeholder{color:var(--ink-2)}
+.form .fld input:focus{outline:3px solid var(--enamel-deep);outline-offset:2px}
+.form .fld input[aria-invalid="true"]{border-color:var(--fail);border-width:2px}
+.form .hint{font-size:var(--t-small);color:var(--ink-2)}
+.form .foot{margin-top:var(--s-6);display:flex;align-items:center;gap:var(--s-5);flex-wrap:wrap}
+.form .foot p{font-size:var(--t-small);color:var(--ink-2);max-width:40ch}
+.form .btn{position:relative;overflow:hidden}
+.form .btn.loading::after{content:"";position:absolute;left:0;bottom:0;height:2px;background:#fff;animation:load 700ms var(--ease-out) forwards}
+@keyframes load{from{width:0}to{width:100%}}
+.done{display:none;flex-direction:column;align-items:flex-start;gap:var(--s-4)}
+.done.on{display:flex}
+.done .stencil{font-size:var(--t-stencil-xl);color:var(--enamel-deep)}
+.done p{max-width:52ch}
+
+/* footer */
+.foot-site{background:var(--enamel-deep);color:var(--on-enamel-2);padding:var(--s-6) var(--gutter)}
+.foot-site .wrap{max-width:var(--maxw);margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s-4);font-size:var(--t-small)}
+.foot-site .stencil{font-size:1.25rem;color:#fff}
+.foot-site b{color:#fff;font-weight:600}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .tagwrap{width:210px}
+  .contents{padding-right:236px}
+}
+@media (max-width:1023px){
+  .cols{grid-template-columns:repeat(6,1fr)}
+  .cols i:nth-child(n+7){display:none}
+  .cols i:nth-child(6){border-right:1px solid var(--enamel-grid)}
+  .head .desc{display:none}
+  .brand{grid-column:1 / span 4}
+  .pager{grid-column:5 / span 8}
+  .colophon{position:static;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:none;border-bottom:1px solid var(--enamel-rule)}
+  .lede{grid-column:1 / -1}
+  .actions{grid-column:1 / -1;margin-top:var(--s-5);padding-left:var(--s-3)}
+  .nameplate{padding:var(--s-5)}
+  .nameplate .np.c2,.nameplate .np.c3,.nameplate .np.row2.c3{grid-column:span 4}
+  .np{border-left:0;border-bottom:1px solid var(--plate-rule)}
+  .np.verdict{grid-column:1 / -1;grid-row:auto;order:10;border-bottom:0;min-height:0}
+  .tagwrap{position:relative;right:auto;top:auto;margin:var(--s-4) auto var(--s-2);transform:rotate(-2deg)}
+  .wire{display:none}
+  .contents{padding-right:var(--s-3);flex-direction:column;align-items:flex-start;gap:var(--s-2)}
+  .ph .sum{grid-column:1 / -1}
+  .ph .aside{grid-column:1 / -1}
+  .sizer .in,.sizer .out{grid-column:1 / -1}
+  .sizer .out{padding:var(--s-2) 0 0}
+  .sizer .out::before{content:none}
+  .profiles{grid-template-columns:1fr}
+  .mix .t,.mix .bars{grid-column:1 / -1}
+  .mix .bars{margin-top:var(--s-4)}
+  .knee .c,.knee .side{grid-column:1 / -1}
+  .knee .side{margin-top:var(--s-5);display:grid;grid-template-columns:1fr 1fr}
+  .band .numeral{grid-column:1 / span 3}
+  .band h2{grid-column:4 / -1}
+  .band .bsum{grid-column:1 / -1;margin-top:var(--s-6)}
+  .bn .id,.bn .ev,.bn .fix{grid-column:1 / -1}
+  .ci .code,.ci .hist{grid-column:1 / -1}
+  .step .no{grid-column:1 / span 2}
+  .step h3{grid-column:3 / -1}
+  .step .you{grid-column:3 / span 5;margin-top:var(--s-3)}
+  .step .we{grid-column:8 / span 5;margin-top:var(--s-3)}
+  .never h3,.never ul{grid-column:1 / -1}
+  .never ul{margin-top:var(--s-5)}
+  .faq h3,.faq dl{grid-column:1 / -1}
+  .faq dl{margin-top:var(--s-5)}
+  .start .intro,.form{grid-column:1 / -1}
+}
+@media (max-width:639px){
+  :root{--t-display:clamp(2rem, 10.2vw, 3rem)}
+  .cols{grid-template-columns:repeat(4,1fr)}
+  .cols i:nth-child(n+5){display:none}
+  .cols i:nth-child(4){border-right:1px solid var(--enamel-grid)}
+  .cols i:nth-child(6){border-right:0}
+  .head .wrap{min-height:60px}
+  .brand .stencil{font-size:1.375rem}
+  .head .btn .ico{display:none}
+  .pager .pg-id{display:none}
+  .head.stuck .pager .label{display:none}
+  .cover h1 .tl{padding-left:var(--s-2);padding-right:var(--s-2)}
+  .colophon{grid-template-columns:1fr 1fr}
+  .colophon div:last-child{grid-column:1 / -1}
+  .lede{padding:0 var(--s-2)}
+  .actions{padding-left:var(--s-2);gap:var(--s-2) var(--s-5)}
+  .nameplate{padding:var(--s-4) var(--s-3) var(--s-3)}
+  .nameplate .np.c2,.nameplate .np.c3,.nameplate .np.row2.c3{grid-column:span 6}
+  .nameplate .np.wide{grid-column:1 / -1}
+  .tbl.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .tbl.stack,.tbl.stack tbody,.tbl.stack tr,.tbl.stack td{display:block;width:100%}
+  .tbl.stack tr{padding:var(--s-4) 0;border-bottom:1px solid var(--plate-rule)}
+  .tbl.stack td{border:0;padding:4px 0;display:grid;grid-template-columns:7.5rem 1fr;gap:var(--s-3);text-align:left}
+  .tbl.stack td.n{text-align:left}
+  .tbl.stack td::before{content:attr(data-label);font-family:var(--f-display);font-size:var(--t-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);padding-top:3px}
+  .tbl.stack td.sc{display:block;font-size:1.125rem;padding-bottom:var(--s-2)}
+  .tbl.stack td.sc::before{content:none}
+  .tbl.stack tbody tr:hover td{background:none}
+  .tbl.stack caption{display:block;width:100%}
+  pre.cfg{font-size:.75rem;padding:var(--s-4)}
+  .np{padding:var(--s-3) var(--s-2)}
+  .page{padding-top:var(--s-7)}
+  .page > .plate{padding:var(--s-7) var(--s-4) 0}
+  .ph h2{gap:var(--s-3)}
+  .sizer{padding:var(--s-5) var(--s-4)}
+  .knee .side{grid-template-columns:1fr}
+  .anat{grid-template-columns:1fr}
+  .mix .bars li{grid-template-columns:1fr;gap:2px}
+  .step .no{grid-column:1 / span 2}
+  .step h3{grid-column:3 / -1}
+  .step .you,.step .we{grid-column:1 / -1}
+  .never{padding:var(--s-5)}
+  .never ul{grid-template-columns:1fr}
+  .form{padding:var(--s-6) var(--s-4) var(--s-5)}
+  .form .grid{grid-template-columns:1fr}
+  .band{padding-top:var(--s-8)}
+  .band .numeral{grid-column:1 / -1}
+  .band h2{grid-column:1 / -1;margin-top:var(--s-3)}
+  .rating{gap:var(--s-4)}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+@media (forced-colors:active){
+  .s-fail{stroke-dasharray:7 5}
+  .plate{outline:1px solid CanvasText}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-hole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.8-3.4 8-8 9-4.6-1-8-4.2-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to the report</a>
+
+<header class="head on-enamel">
+  <div class="cols" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Proofload, back to the cover"><span class="stencil">PROOFLOAD</span></a>
+    <p class="desc">Load test reports for HTTP APIs, written by engineers</p>
+    <div class="pager">
+      <p class="label" id="pager" aria-live="off"><span class="pg-id">Sample report PL-2609-017 ·</span> <span id="pager-now">Cover, page 1 of 7</span></p>
+      <a class="btn btn--sm" href="#start" id="head-cta" tabindex="-1" aria-hidden="true">Start a test <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="cover on-enamel" id="top" aria-labelledby="cover-title">
+  <div class="cols" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="wrap">
+    <div class="titleblock">
+      <h1 id="cover-title"><span class="tl">Your API, tested at</span><span class="tl"><span class="st">3x</span> its real peak,</span><span class="tl">before launch day.</span></h1>
+      <dl class="colophon">
+        <div><dt class="label">Prepared for</dt><dd>The checkout team of a fictional online retailer</dd></div>
+        <div><dt class="label">Issued</dt><dd>22 Sep 2026, after a first run on 15 Sep</dd></div>
+        <div><dt class="label">Prepared by</dt><dd>Proofload test engineering</dd></div>
+      </dl>
+    </div>
+
+    <div class="ledeRow">
+      <p class="lede">Send us last year's peak and a staging URL. We run constant, spike and soak tests sized on it, push staging to three times that peak, and write up what broke first, why, and how it was fixed. You keep the test as a CI gate. Production is never touched.</p>
+      <div class="actions">
+        <a class="btn" href="#start" id="cover-cta">Start a test <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="link" href="#findings">Read the sample <svg class="ico" aria-hidden="true"><use href="#i-down"/></svg></a>
+      </div>
+    </div>
+
+    <dl class="nameplate plate" aria-label="Test data plate for report PL-2609-017">
+      <div class="np row1 c2"><dt class="label">Test ID</dt><dd class="field">PL-2609-017</dd></div>
+      <div class="np row1 c2"><dt class="label">System under test</dt><dd class="field">checkout-api, 6 pods</dd></div>
+      <div class="np row1 c3 wide"><dt class="label">Target</dt><dd class="field">staging.checkout.example</dd></div>
+      <div class="np row1 c2"><dt class="label">Scenarios</dt><dd class="field">Constant, spike, soak 6 h</dd></div>
+      <div class="np verdict"><dt class="label vh">Verdict</dt>
+        <dd>
+          <span class="wire" aria-hidden="true"></span>
+          <div class="tagwrap">
+            <div class="tag" role="group" aria-label="Inspection tag: holds at 3.0 times peak">
+              <span class="hole" aria-hidden="true"></span>
+              <div class="band label"><span>Proof load tested</span><span>Re-run</span></div>
+              <span class="stamp stencil strike" data-strike>HOLDS</span>
+              <span class="at">at 3.0x peak</span>
+              <p class="facts num">12,600 RPS · p95 212 ms · errors 0.02%</p>
+              <p class="first"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg><span>First run 15 Sep: failed at 2.1x</span></p>
+              <div class="punch" aria-label="Tested in September">
+                <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span class="p">S</span><span>O</span><span>N</span><span>D</span>
+              </div>
+              <div class="punch yr" aria-label="Year 2026"><span>25</span><span class="p">26</span><span>27</span><span>28</span></div>
+            </div>
+          </div>
+        </dd>
+      </div>
+      <div class="np row2 first c3"><dt class="label">Rated load (last peak)</dt><dd><span class="stencil">4,200 RPS</span><span class="sub">Observed on Black Friday 2025</span></dd></div>
+      <div class="np row2 c3"><dt class="label">Proof load</dt><dd><span class="stencil proof">12,600 RPS</span><span class="sub">3.0x rated, held for 20 min</span></dd></div>
+      <div class="np row2 c3 wide"><dt class="label">Pass criteria</dt><dd class="field">p95 under 300 ms, errors under 0.1%</dd></div>
+    </dl>
+
+    <nav class="contents" aria-label="Report contents">
+      <span class="label muted-e">Contents</span>
+      <ol>
+        <li><a href="#findings"><span class="stencil">1</span>Findings <span class="pg">p.2</span></a></li>
+        <li><a href="#scenarios"><span class="stencil">2</span>Scenarios <span class="pg">p.3</span></a></li>
+        <li><a href="#percentiles"><span class="stencil">3</span>Percentiles <span class="pg">p.4</span></a></li>
+        <li><a href="#bottlenecks"><span class="stencil">4</span>Bottlenecks <span class="pg">p.5</span></a></li>
+        <li><a href="#ci-gate"><span class="stencil">5</span>CI gate <span class="pg">p.6</span></a></li>
+        <li><a href="#method"><span class="stencil">6</span>Method <span class="pg">p.7</span></a></li>
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<!-- 1 Findings -->
+<section class="page" id="findings" aria-labelledby="h-findings">
+  <div class="plate">
+    <div class="ph">
+      <h2 id="h-findings"><span class="stencil">1</span>Findings at a glance</h2>
+      <p class="sum">The first run failed at 2.1x peak: the checkout database pool ran out of connections. The soak found a memory leak that killed a pod after 5 h 40 min, and the spike exposed an order-events consumer that could not keep up. The client's team fixed all three and a re-run on 22 Sep verified them: checkout-api now holds 12,600 RPS with p95 at 212 ms, and p95 first crosses the 300 ms target at 14,300 RPS, 3.4x peak.</p>
+      <p class="aside">Every figure in this sample is demo data for a fictional client, shaped like a real report.</p>
+    </div>
+    <div class="block scroll">
+      <table class="tbl stack">
+        <caption class="vh">Verdict per scenario, first run and re-run</caption>
+        <thead><tr><th scope="col">Scenario</th><th scope="col">Load profile</th><th scope="col">First run, 15 Sep</th><th scope="col">Re-run, 22 Sep</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="sc" data-label="Scenario">Constant, stepped</td>
+            <td data-label="Load profile">1x, 2x, 3x peak; 3x (12,600 RPS) held for 20 min</td>
+            <td data-label="First run"><div class="res"><span class="mark bad"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg><span class="txt">Failed</span></span><span class="num">Stopped at 8,800 RPS (2.1x): p95 1,410 ms, errors 4.2%</span></div></td>
+            <td data-label="Re-run"><div class="res"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span><span class="num">p95 212 ms, p99 286 ms, errors 0.02%</span></div></td>
+          </tr>
+          <tr>
+            <td class="sc" data-label="Scenario">Spike</td>
+            <td data-label="Load profile">1,400 to 12,600 RPS in 30 s, held 5 min, then back</td>
+            <td data-label="First run"><div class="res"><span class="mark bad"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg><span class="txt">Failed</span></span><span class="num">Errors 6.8% for 90 s; order-events lag 2 min 34 s</span></div></td>
+            <td data-label="Re-run"><div class="res"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span><span class="num">p95 248 ms, errors 0.04%, lag 1.2 s</span></div></td>
+          </tr>
+          <tr>
+            <td class="sc" data-label="Scenario">Soak</td>
+            <td data-label="Load profile">4,200 RPS for 6 h, 90.7 million requests</td>
+            <td data-label="First run"><div class="res"><span class="mark bad"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg><span class="txt">Failed</span></span><span class="num">One pod OOM-killed at 5 h 40 min; p99 drifted to 1,200 ms</span></div></td>
+            <td data-label="Re-run"><div class="res"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span><span class="num">Heap flat at 640 MB per pod; p99 141 ms</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 2 of 7</span></p>
+  </div>
+</section>
+
+<!-- 2 Scenarios + sizer -->
+<section class="page" id="scenarios" aria-labelledby="h-scen">
+  <div class="plate">
+    <div class="ph">
+      <h2 id="h-scen"><span class="stencil">2</span>Scenarios, sized on your peak</h2>
+      <p class="sum">A crane hook is rated for a working load limit (WLL) and proof tested at a multiple of it before it goes into service. We do the same to your API: your last real peak is the WLL, and the proof load is the multiple we agree with you. This sample used 4,200 RPS and 3x. Put in your own peak to see the plan it would produce.</p>
+    </div>
+
+    <div class="sizer" id="sizer">
+      <div class="in">
+        <div class="fld">
+          <label class="label" for="peak">Your last peak</label>
+          <div class="inputbox" id="peakbox"><input id="peak" name="peak" type="text" inputmode="numeric" autocomplete="off" value="4,200" aria-describedby="peak-err peak-hint"><span class="unit">RPS</span></div>
+          <p class="small" id="peak-hint" data-m>Requests per second at the busiest moment of your last big event.</p>
+          <p class="err-msg" id="peak-err" aria-live="polite"></p>
+        </div>
+        <fieldset class="fld">
+          <legend class="label">Proof multiple</legend>
+          <div class="seg">
+            <label>2x<input type="radio" name="mult" value="2"></label>
+            <label>2.5x<input type="radio" name="mult" value="2.5"></label>
+            <label>3x<input type="radio" name="mult" value="3" checked></label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="out" aria-live="polite">
+        <div class="rating">
+          <div><span class="label lab">Working load limit (your peak)</span><span class="stencil" id="o-wll">WLL 4,200 RPS</span></div>
+          <div><span class="label lab">Proof load</span><span class="stencil proof strike" id="o-proof">PROOF 12,600 RPS</span></div>
+        </div>
+        <p class="littles" id="o-little">At <b>12,600 RPS</b>, every 10 ms a request holds a database connection keeps <b>126 connections</b> busy on average (arrival rate × hold time). That is the first sum we check against your pool.</p>
+      </div>
+    </div>
+
+    <div class="profiles">
+      <div class="prof">
+        <h3>Constant, stepped</h3>
+        <div class="chart" id="pf-const"></div>
+        <p id="pf-const-t">1x, 2x, then 3x held for 20 min: steady-state latency at each step and the knee between them.</p>
+        <p class="tot num" id="pf-const-n"></p>
+      </div>
+      <div class="prof">
+        <h3>Spike</h3>
+        <div class="chart" id="pf-spike"></div>
+        <p id="pf-spike-t">A third of peak, then proof load in 30 s, held 5 min: autoscaling, pools and queues under a sudden jump.</p>
+        <p class="tot num" id="pf-spike-n"></p>
+      </div>
+      <div class="prof">
+        <h3>Soak</h3>
+        <div class="chart" id="pf-soak"></div>
+        <p>Your peak held for 6 hours: memory leaks, connection churn and slow drift that a 20 minute run never shows.</p>
+        <p class="tot num" id="pf-soak-n"></p>
+      </div>
+    </div>
+
+    <div class="mix block">
+      <div class="t">
+        <h3>Endpoint mix at proof load</h3>
+        <p class="note">Shares come from the client's access logs, so the test puts load where the real traffic does. Arrival rate is open: requests start on schedule even when earlier ones are slow, so slowness shows up as latency instead of quietly lowering the load.</p>
+      </div>
+      <ul class="bars" id="mixbars" aria-label="Requests per second per endpoint at proof load"></ul>
+    </div>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 3 of 7</span></p>
+  </div>
+</section>
+
+<!-- 3 Percentiles -->
+<section class="page" id="percentiles" aria-labelledby="h-pct">
+  <div class="plate">
+    <div class="ph">
+      <h2 id="h-pct"><span class="stencil">3</span>Latency percentiles</h2>
+      <p class="sum">p95 latency against arrival rate, first run and re-run on the same axes. The first run crossed the 300 ms target at 7,500 RPS and was stopped at 8,800 RPS when errors passed 4%. After the fixes, p95 stays under target up to 14,300 RPS.</p>
+    </div>
+    <div class="knee">
+      <div class="c">
+        <div class="chart" id="kneechart" aria-describedby="knee-desc"></div>
+        <ul class="legend" aria-label="Legend">
+          <li><span class="k f" aria-hidden="true"></span>First run, 15 Sep (stopped at 8,800 RPS)</li>
+          <li><span class="k" aria-hidden="true"></span>Re-run after fixes, 22 Sep</li>
+          <li><span class="k r" aria-hidden="true"></span>Target: p95 300 ms</li>
+        </ul>
+        <p class="vh" id="knee-desc">Line chart. First run p95 rises from 88 ms at 1,000 RPS to 1,410 ms at 8,800 RPS. Re-run p95 rises from 71 ms at 1,000 RPS to 212 ms at 12,600 RPS and 388 ms at 14,900 RPS. The full values are in the table view below the chart.</p>
+        <details class="twin">
+          <summary><svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg>Table view</summary>
+          <div class="scroll"><table class="tbl" id="knee-table"><caption class="vh">p95 latency by arrival rate</caption><thead><tr><th scope="col" class="n">Arrival rate</th><th scope="col" class="n">First run p95</th><th scope="col" class="n">Re-run p95</th></tr></thead><tbody></tbody></table></div>
+        </details>
+      </div>
+      <div class="side">
+        <div class="delta">
+          <p class="bracket">[ p99 at the stop point: <b>1,840 → 286 ms</b> ]</p>
+          <span class="stencil">−84%</span>
+          <p>p99 of the first run at 8,800 RPS against p99 of the re-run held at 12,600 RPS, a higher load.</p>
+        </div>
+        <dl class="defs">
+          <dt>p50</dt><dd>Half of all requests finished faster than this.</dd>
+          <dt>p95</dt><dd>95 of every 100 finished faster. The target in this test.</dd>
+          <dt>p99</dt><dd>99 of every 100 finished faster. Where queues show first.</dd>
+        </dl>
+        <p class="small" data-m>Percentiles are read from the full latency histogram of each window, never averaged across time slices.</p>
+      </div>
+    </div>
+
+    <div class="block scroll">
+      <table class="tbl stack">
+        <caption><span class="label" data-m>Re-run, 22 Sep</span></caption>
+        <thead><tr><th scope="col">Scenario</th><th scope="col" class="n">Throughput</th><th scope="col" class="n">p50</th><th scope="col" class="n">p95</th><th scope="col" class="n">p99</th><th scope="col" class="n">Max</th><th scope="col" class="n">Errors</th><th scope="col">Verdict</th></tr></thead>
+        <tbody>
+          <tr><td class="sc" data-label="Scenario">Constant, 3x hold</td><td class="n" data-label="Throughput">12,597 RPS</td><td class="n" data-label="p50">64 ms</td><td class="n" data-label="p95">212 ms</td><td class="n" data-label="p99">286 ms</td><td class="n" data-label="Max">1,120 ms</td><td class="n" data-label="Errors">0.02%</td><td data-label="Verdict"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span></td></tr>
+          <tr><td class="sc" data-label="Scenario">Spike, hold window</td><td class="n" data-label="Throughput">12,588 RPS</td><td class="n" data-label="p50">71 ms</td><td class="n" data-label="p95">248 ms</td><td class="n" data-label="p99">392 ms</td><td class="n" data-label="Max">1,480 ms</td><td class="n" data-label="Errors">0.04%</td><td data-label="Verdict"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span></td></tr>
+          <tr><td class="sc" data-label="Scenario">Soak, 6 h</td><td class="n" data-label="Throughput">4,200 RPS</td><td class="n" data-label="p50">38 ms</td><td class="n" data-label="p95">97 ms</td><td class="n" data-label="p99">141 ms</td><td class="n" data-label="Max">860 ms</td><td class="n" data-label="Errors">0.003%</td><td data-label="Verdict"><span class="mark ok"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Holds</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 4 of 7</span></p>
+  </div>
+</section>
+
+<!-- 4 Bottlenecks: chapter band -->
+<section class="band on-enamel" id="bottlenecks" aria-labelledby="h-bn">
+  <div class="wrap">
+    <span class="numeral stencil" aria-hidden="true">4</span>
+    <h2 id="h-bn"><span class="vh">4 </span>Bottlenecks, ranked by impact</h2>
+    <div class="bsum">
+      <p>Three things broke. They are ranked by what they cost at proof load, and each keeps its evidence, its fix and the re-run that proved the fix.</p>
+      <ol aria-label="In this chapter">
+        <li><span class="stencil">1</span><a href="#bn-1">Connection pool exhaustion</a><span class="c">stopped the run</span></li>
+        <li><span class="stencil">2</span><a href="#bn-2">Memory leak in the price cache</a><span class="c">killed a pod</span></li>
+        <li><span class="stencil">3</span><a href="#bn-3">Queue consumer prefetch limit</a><span class="c">delayed orders</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="page after-band" aria-label="Bottleneck details">
+  <div class="plate">
+    <article class="bn" id="bn-1" aria-labelledby="bn1-h">
+      <div class="id">
+        <div class="rank"><span class="stencil" aria-hidden="true">1</span><h3 id="bn1-h">Database connection pool exhaustion</h3></div>
+        <p class="where small"><code>checkout-api</code> to Postgres, all write endpoints</p>
+        <div class="cost"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg>Cost at proof load</span><p>Stopped the first run at 2.1x. 4.2% of requests failed with HTTP 503 after the 2 s pool timeout; p99 of the rest reached 1,840 ms.</p></div>
+        <p class="why">6 pods × 20 connections gave a pool of 120. Each request held a connection for about 13 ms, so 8,800 RPS kept about 114 busy (8,800 × 0.013). At that utilisation the wait queue grows faster than it drains.</p>
+      </div>
+      <div class="ev">
+        <span class="label">One request, traced at p99</span>
+        <div class="anat">
+          <div class="run">
+            <div class="tot f"><span class="field">First run, 8,800 RPS</span><span class="n">1,840 ms</span></div>
+            <ul id="anat-a"></ul>
+          </div>
+          <div class="run">
+            <div class="tot"><span class="field">Re-run, 12,600 RPS</span><span class="n">286 ms</span></div>
+            <ul id="anat-b"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="fix">
+        <div><span class="label">Fix, applied by the client</span><p>Index on <code>orders(cart_id)</code> cut connection hold time from 13 ms to 6 ms. Pool raised to 40 per pod behind PgBouncer in transaction mode, 100 server connections.</p></div>
+        <div class="verified"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Verified by re-run</span><span class="stencil num">1,840 → 286 ms</span><p class="vnote">p99 at a higher load; pool wait 4 ms.</p></div>
+      </div>
+    </article>
+
+    <article class="bn" id="bn-2" aria-labelledby="bn2-h">
+      <div class="id">
+        <div class="rank"><span class="stencil" aria-hidden="true">2</span><h3 id="bn2-h">Memory leak in the price cache</h3></div>
+        <p class="where small"><code>checkout-api</code> in-process cache, found by the soak</p>
+        <div class="cost"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg>Cost at proof load</span><p>One pod OOM-killed at 5 h 40 min. From hour 4, longer GC pauses pushed p99 from 141 ms to 1,200 ms.</p></div>
+        <p class="why">Prices were cached per session ID with no size limit and no expiry, so every new session added entries that were never evicted: about 71 MB per hour per pod against a 1 GiB limit.</p>
+      </div>
+      <div class="ev">
+        <span class="label">Heap per pod over the 6 h soak</span>
+        <div class="chart" id="heapchart" aria-label="Line chart of heap memory per pod over six hours. First run grows from 620 MB to the 1,024 MB limit at 5 h 40 min. Re-run stays near 640 MB."></div>
+        <ul class="legend"><li><span class="k f" aria-hidden="true"></span>First run</li><li><span class="k" aria-hidden="true"></span>Re-run</li><li><span class="k r" aria-hidden="true"></span>Pod memory limit</li></ul>
+      </div>
+      <div class="fix">
+        <div><span class="label">Fix, applied by the client</span><p>Bounded LRU: 50,000 entries, 10 min TTL, hit rate 94% on the re-run.</p></div>
+        <div class="verified"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Verified by re-run</span><span class="stencil num">OOM → 652 MB</span><p class="vnote">Heap at hour 6, flat since hour 1.</p></div>
+      </div>
+    </article>
+
+    <article class="bn" id="bn-3" aria-labelledby="bn3-h">
+      <div class="id">
+        <div class="rank"><span class="stencil" aria-hidden="true">3</span><h3 id="bn3-h">Queue consumer prefetch limit</h3></div>
+        <p class="where small"><code>order-events</code> consumers on RabbitMQ, found by the spike</p>
+        <div class="cost"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-cross"/></svg>Cost at proof load</span><p>No API errors, but order confirmations fell behind: lag peaked at 2 min 34 s and took about 3 min to drain after the spike.</p></div>
+        <p class="why">Prefetch 1 and 4 consumers per pod on 3 pods meant 12 messages in flight. At 12 ms per message including the wait for the next delivery, that is about 1,000 msg/s. The spike published 1,512 msg/s.</p>
+      </div>
+      <div class="ev">
+        <span class="label">Queue depth during the spike</span>
+        <div class="chart" id="queuechart" aria-label="Line chart of queue depth over 15 minutes. First run grows to 153,600 messages at the end of the spike and drains by minute 13.6. Re-run peaks at 1,900 messages."></div>
+        <ul class="legend"><li><span class="k f" aria-hidden="true"></span>First run</li><li><span class="k" aria-hidden="true"></span>Re-run</li></ul>
+      </div>
+      <div class="fix">
+        <div><span class="label">Fix, applied by the client</span><p>Prefetch 20 and 8 consumers per pod: the next message is already buffered, so each takes 8 ms, about 3,000 msg/s in total.</p></div>
+        <div class="verified"><span class="label"><svg class="ico" aria-hidden="true"><use href="#i-hole"/></svg>Verified by re-run</span><span class="stencil num">2 min 34 s → 1.2 s</span><p class="vnote">Peak lag during the same spike.</p></div>
+      </div>
+    </article>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 5 of 7</span></p>
+  </div>
+</section>
+
+<!-- 5 CI gate -->
+<section class="page" id="ci-gate" aria-labelledby="h-ci">
+  <div class="plate">
+    <div class="ph">
+      <h2 id="h-ci"><span class="stencil">5</span>The test stays behind as a CI gate</h2>
+      <p class="sum">The report ends with a trimmed scenario your pipeline runs after every deploy to staging: 3 minutes at your peak on the hottest endpoints, with thresholds tighter than your SLO, so a regression fails the build before it reaches production.</p>
+    </div>
+    <div class="ci">
+      <div class="code">
+        <h3 class="label" data-m>Gate file handed over with the report (sample)</h3>
+<pre class="cfg"><code><span class="c"># proofload/gate.yaml</span>
+<span class="k">target:</span> https://staging.checkout.example
+<span class="k">arrival_rate:</span> 4200/s    <span class="c"># 1x last peak, open model</span>
+<span class="k">duration:</span> 3m
+<span class="k">ramp:</span> 30s
+<span class="k">mix:</span>
+  GET  /cart               38%
+  POST /cart/items         22%
+  GET  /products/{id}      16%
+  POST /checkout           12%
+  GET  /orders/{id}        12%
+<span class="k">mocks:</span> [payments, email, sms]
+<span class="k">thresholds:</span>
+  p95:    &lt; 150ms
+  p99:    &lt; 300ms
+  errors: &lt; 0.1%
+<span class="k">on_fail:</span> exit 1          <span class="c"># blocks the merge</span></code></pre>
+      </div>
+      <div class="hist">
+        <h3 class="label" data-m>Gate history, last 24 builds on main (p95 at 1x peak)</h3>
+        <div class="chart" id="cichart" aria-label="Column chart of p95 per build for builds 1830 to 1853. All builds between 92 and 108 ms except build 1843 at 412 ms, which failed the 150 ms threshold."></div>
+        <ul class="legend" aria-label="Marks"><li><svg class="ico lk" aria-hidden="true"><use href="#i-hole"/></svg>Passed the gate</li><li><svg class="ico lk bad" aria-hidden="true"><use href="#i-cross"/></svg>Failed, merge blocked</li><li><span class="k r" aria-hidden="true"></span>Gate threshold</li></ul>
+        <p class="note small cinote">Build #1843 added an N+1 query to <code class="ic">GET /orders/{id}</code>, one query per line item. The gate failed it at p95 412 ms and blocked the merge; the fix went out in #1844 at 101 ms.</p>
+      </div>
+    </div>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 6 of 7</span></p>
+  </div>
+</section>
+
+<!-- 6 Method -->
+<section class="page" id="method" aria-labelledby="h-method">
+  <div class="plate">
+    <div class="ph">
+      <h2 id="h-method"><span class="stencil">6</span>How a test runs</h2>
+      <p class="sum">Six steps, from your peak figure to a gate in your pipeline. You keep control of the URL, the dates and the go signal for every run.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="no stencil">1</span><h3>Scope</h3><p class="you"><span class="label">You send</span>Last peak (RPS per endpoint, or an access-log sample), the staging URL, the event date and your pass criteria.</p><p class="we"><span class="label">We send back</span>A test plan: proof multiple, scenarios, endpoint mix, mocks and the run dates.</p></div>
+      <div class="step"><span class="no stencil">2</span><h3>Script and calibrate</h3><p class="you"><span class="label">You provide</span>Test accounts and a way to seed synthetic data on staging.</p><p class="we"><span class="label">We do</span>Write the scenarios, mock external services with their recorded latency, and run a calibration pass to prove the load generators are not the bottleneck.</p></div>
+      <div class="step"><span class="no stencil">3</span><h3>Run</h3><p class="you"><span class="label">You watch</span>Your own dashboards during the runs, if you want to, with a direct line to us.</p><p class="we"><span class="label">We run</span>Constant, spike and soak from load generators outside your network, and stop at once if your team asks.</p></div>
+      <div class="step"><span class="no stencil">4</span><h3>Report</h3><p class="you"><span class="label">You get</span>The written report: verdict per scenario, percentiles, errors, throughput, bottlenecks ranked by impact with their evidence.</p><p class="we"><span class="label">We walk through</span>Each finding with the engineers who will fix it, with the traces and metrics behind it.</p></div>
+      <div class="step"><span class="no stencil">5</span><h3>Re-run</h3><p class="you"><span class="label">You fix</span>What the report found, on your schedule.</p><p class="we"><span class="label">We verify</span>By running the failed scenarios again and adding the results to the same report.</p></div>
+      <div class="step"><span class="no stencil">6</span><h3>Hand over the gate</h3><p class="you"><span class="label">You keep</span>The trimmed scenario and its thresholds, wired into your CI.</p><p class="we"><span class="label">We tune</span>The thresholds so the gate fails on real regressions, not on noise.</p></div>
+    </div>
+
+    <div class="never">
+      <h3><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg>What a Proofload test never touches</h3>
+      <ul>
+        <li><b>Production traffic</b>Tests run against staging or pre-production URLs you control and name in writing.</li>
+        <li><b>Third-party APIs</b>Payments, email, SMS and partner APIs are mocked with their recorded latency, so no one else gets load and nothing is charged.</li>
+        <li><b>Customer data</b>Staging is seeded with synthetic carts, users and orders shaped like yours.</li>
+      </ul>
+    </div>
+
+    <div class="faq">
+      <h3>Questions backend leads ask first</h3>
+      <dl>
+        <dt>Staging is smaller than production. Is the result still useful?</dt>
+        <dd>Yes, if the report says how. We measure the ceiling per pod and what saturates first, and state the scaling assumption in writing. A small staging result is never multiplied into a production number without saying so.</dd>
+        <dt>What can you test?</dt>
+        <dd>HTTP APIs, REST or GraphQL, with authentication scripted per endpoint and data seeded to match your real carts, users and orders.</dd>
+        <dt>Why not just run an open-source tool ourselves?</dt>
+        <dd>You can, and the gate we hand over is a plain file you own. What the engagement adds is the sizing, the calibration, the reading of the results and the written ranking of what to fix first.</dd>
+      </dl>
+    </div>
+    <p class="pfoot label"><span>PL-2609-017 · Sample report</span><span>Page 7 of 7</span></p>
+  </div>
+</section>
+
+<!-- Start -->
+<section class="start on-enamel" id="start" aria-labelledby="h-start">
+  <div class="cols" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="wrap">
+    <div class="intro">
+      <h2 id="h-start">Start a test</h2>
+      <p>Tell us what to point at and how busy it gets. We reply with a test plan: the proof multiple, the scenarios and the date of the first run.</p>
+      <p class="pending"><svg class="ico" aria-hidden="true"><use href="#i-ring"/></svg><span><span class="label">Your API</span><span class="stencil">Not yet proof tested</span></span></p>
+    </div>
+    <div class="form plate">
+      <form id="req" novalidate>
+        <div class="grid">
+          <div class="fld full"><label class="label" for="f-url">Staging URL</label><input id="f-url" name="url" type="url" placeholder="https://staging.example.com" autocomplete="url" required aria-describedby="e-url"><p class="err-msg" id="e-url"></p></div>
+          <div class="fld"><label class="label" for="f-peak">Last peak, RPS</label><input id="f-peak" name="peak" type="text" inputmode="numeric" placeholder="4,200" required aria-describedby="h-peak e-peak"><p class="hint" id="h-peak">Busiest minute divided by 60 is a fair start.</p><p class="err-msg" id="e-peak"></p></div>
+          <div class="fld"><label class="label" for="f-date">Event date</label><input id="f-date" name="date" type="date" aria-describedby="e-date"><p class="err-msg" id="e-date"></p></div>
+          <div class="fld full"><label class="label" for="f-crit">Pass criteria</label><input id="f-crit" name="crit" type="text" placeholder="p95 under 300 ms, errors under 0.1% at 3x peak"></div>
+          <div class="fld full"><label class="label" for="f-mail">Work email</label><input id="f-mail" name="email" type="email" placeholder="you@company.com" autocomplete="email" required aria-describedby="e-mail"><p class="err-msg" id="e-mail"></p></div>
+        </div>
+        <div class="foot">
+          <button class="btn btn--enamel" type="submit" id="f-go">Start a test <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <p>We only use these details to plan your test.</p>
+        </div>
+      </form>
+      <div class="done" id="done" role="status" aria-live="polite" tabindex="-1">
+        <span class="label" data-m>Request logged</span>
+        <span class="stencil strike" id="done-id">PL-2609-018</span>
+        <p id="done-msg">Your test request is on the plate. In the real service an engineer would reply with a test plan. This is a portfolio demo, so nothing was sent anywhere.</p>
+        <button class="link linkbtn" type="button" id="again">Log another request</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot-site on-enamel">
+  <div class="wrap">
+    <span><span class="stencil">PROOFLOAD</span> · Load test reports for HTTP APIs</span>
+    <span><b>Portfolio demo. Fictional brand.</b> Sample report figures are illustrative.</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const fmt = n => Math.round(n).toLocaleString("en-US");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, cls, anchor = "start") => {
+    const t = el("text", { x, y, class: cls || "", "text-anchor": anchor }, parent);
+    t.textContent = s;
+    return t;
+  };
+  function strike(node) {
+    if (!node || reduce) return;
+    node.classList.remove("is-struck");
+    void node.offsetWidth;
+    node.classList.add("is-struck");
+  }
+
+  /* ---------- generic line chart ---------- */
+  function lineChart(host, cfg) {
+    host.innerHTML = "";
+    const W = Math.max(280, host.clientWidth);
+    const H = cfg.height || Math.round(Math.min(420, Math.max(220, W * 0.52)));
+    const m = { t: 30, r: cfg.mr || 28, b: 44, l: cfg.ml || 58 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const X = v => m.l + (v - cfg.x.min) / (cfg.x.max - cfg.x.min) * iw;
+    const Y = v => m.t + ih - (v - cfg.y.min) / (cfg.y.max - cfg.y.min) * ih;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img", "aria-label": cfg.label || "" }, host);
+    const ax = el("g", { class: "ax" }, svg);
+    cfg.y.ticks.forEach(v => {
+      el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), class: v === cfg.y.min ? "base" : "" }, ax);
+      txt(ax, m.l - 8, Y(v) + 4, cfg.y.fmt(v), "", "end");
+    });
+    cfg.x.ticks.forEach(v => {
+      el("line", { x1: X(v), x2: X(v), y1: m.t + ih, y2: m.t + ih + 5 }, ax);
+      txt(ax, X(v), m.t + ih + 20, cfg.x.fmt(v), "", "middle");
+    });
+    if (cfg.x.title) txt(ax, m.l + iw, H - 4, cfg.x.title, "", "end");
+    if (cfg.y.title) txt(ax, m.l - 8, m.t - 16, cfg.y.title, "", "end");
+    (cfg.refs || []).forEach(r => {
+      const g = el("g", { class: "ref" }, svg);
+      el("line", { x1: m.l, x2: m.l + iw, y1: Y(r.y), y2: Y(r.y) }, g);
+      txt(g, r.anchor === "start" ? m.l + 6 : m.l + iw, Y(r.y) - 6, r.label, "", r.anchor || "end");
+    });
+    const paths = [];
+    cfg.series.forEach(s => {
+      const pts = s.points.filter(p => p[1] != null);
+      const d = pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ");
+      const p = el("path", { d, class: s.cls }, svg);
+      paths.push(p);
+      (s.marks || []).forEach(mk => {
+        const pt = pts.find(q => q[0] === mk);
+        if (!pt) return;
+        if (s.cls === "s-fail") {
+          const cx = X(pt[0]), cy = Y(pt[1]);
+          el("path", { d: `M${cx - 5} ${cy - 5}L${cx + 5} ${cy + 5}M${cx + 5} ${cy - 5}L${cx - 5} ${cy + 5}`, class: "dot-fail" }, svg);
+        } else {
+          el("circle", { cx: X(pt[0]), cy: Y(pt[1]), r: 4.5, class: "dot-ink" }, svg);
+        }
+      });
+      (s.labels || []).forEach(l => {
+        txt(svg, X(l.x) + (l.dx || 0), Y(l.y) + (l.dy || 0), l.text, "lbl" + (s.cls === "s-fail" ? " f" : "") + (l.small ? " s" : ""), l.anchor || "start");
+      });
+    });
+    if (!reduce && cfg.draw) {
+      paths.forEach(p => {
+        const L = p.getTotalLength();
+        p.style.strokeDasharray = p.classList.contains("s-fail") ? "" : L;
+        if (!p.classList.contains("s-fail")) {
+          p.style.strokeDashoffset = L;
+          p.getBoundingClientRect();
+          p.style.transition = `stroke-dashoffset var(--dur-draw) var(--ease-out)`;
+          requestAnimationFrame(() => { p.style.strokeDashoffset = 0; });
+        }
+      });
+    }
+    /* crosshair + tooltip on the shared x grid */
+    const xs = cfg.grid;
+    if (xs && xs.length) {
+      const tip = document.createElement("div");
+      tip.className = "tip";
+      tip.setAttribute("aria-hidden", "true");
+      host.appendChild(tip);
+      const live = document.createElement("p");
+      live.className = "vh";
+      live.setAttribute("aria-live", "polite");
+      host.appendChild(live);
+      const xh = el("line", { class: "xh", y1: m.t, y2: m.t + ih, x1: -10, x2: -10, visibility: "hidden" }, svg);
+      const frame = el("rect", { x: m.l - 4, y: m.t - 4, width: iw + 8, height: ih + 8, class: "hitframe" }, svg);
+      const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, class: "hit", tabindex: 0, role: "slider", "aria-label": (cfg.label || "Chart") + ". Use left and right arrows to read values.", "aria-valuemin": 0, "aria-valuemax": xs.length - 1, "aria-valuenow": 0 }, svg);
+      let idx = -1;
+      const show = i => {
+        idx = Math.max(0, Math.min(xs.length - 1, i));
+        const xv = xs[idx];
+        xh.setAttribute("x1", X(xv)); xh.setAttribute("x2", X(xv)); xh.setAttribute("visibility", "visible");
+        tip.textContent = "";
+        const h = document.createElement("div"); h.className = "h"; h.textContent = cfg.x.fmtTip(xv); tip.appendChild(h);
+        const said = [cfg.x.fmtTip(xv)];
+        cfg.series.forEach(s => {
+          const pt = s.points.find(p => p[0] === xv);
+          const r = document.createElement("div"); r.className = "r";
+          const k = document.createElement("span");
+          const kk = document.createElement("i"); kk.className = "k" + (s.cls === "s-fail" ? " f" : ""); k.appendChild(kk);
+          k.appendChild(document.createTextNode(s.name));
+          const b = document.createElement("b");
+          b.textContent = pt && pt[1] != null ? cfg.y.fmtTip(pt[1]) : (s.missing || "no data");
+          r.appendChild(k); r.appendChild(b); tip.appendChild(r);
+          said.push(s.name + " " + b.textContent);
+        });
+        tip.classList.add("on");
+        const px = X(xv), tw = tip.offsetWidth;
+        let left = px + 14;
+        if (left + tw > W) left = px - tw - 14;
+        tip.style.left = left + "px";
+        tip.style.top = m.t + 4 + "px";
+        hit.setAttribute("aria-valuenow", idx);
+        hit.setAttribute("aria-valuetext", said.join(", "));
+        live.textContent = said.join(", ");
+      };
+      const hide = () => { xh.setAttribute("visibility", "hidden"); tip.classList.remove("on"); };
+      const nearest = clientX => {
+        const r = svg.getBoundingClientRect();
+        const vx = (clientX - r.left) * (W / r.width);
+        let best = 0, bd = Infinity;
+        xs.forEach((v, i) => { const d = Math.abs(X(v) - vx); if (d < bd) { bd = d; best = i; } });
+        return best;
+      };
+      hit.addEventListener("pointermove", e => show(nearest(e.clientX)));
+      hit.addEventListener("pointerdown", e => show(nearest(e.clientX)));
+      hit.addEventListener("pointerleave", hide);
+      hit.addEventListener("focus", () => show(idx < 0 ? 0 : idx));
+      hit.addEventListener("blur", hide);
+      hit.addEventListener("keydown", e => {
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); show(idx + 1); }
+        else if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); show(idx - 1); }
+        else if (e.key === "Home") { e.preventDefault(); show(0); }
+        else if (e.key === "End") { e.preventDefault(); show(xs.length - 1); }
+        else if (e.key === "Escape") { hide(); }
+      });
+    }
+    return svg;
+  }
+
+  /* ---------- data ---------- */
+  const kneeX = [1000, 2100, 4200, 6300, 7500, 8400, 8800, 10500, 12600, 13600, 14300, 14900];
+  const firstP95 = { 1000: 88, 2100: 92, 4200: 118, 6300: 176, 7500: 300, 8400: 690, 8800: 1410 };
+  const rerunP95 = { 1000: 71, 2100: 76, 4200: 96, 6300: 112, 7500: 122, 8400: 131, 8800: 135, 10500: 158, 12600: 212, 13600: 268, 14300: 301, 14900: 388 };
+
+  function drawKnee() {
+    const host = document.getElementById("kneechart");
+    const narrow = host.clientWidth < 520;
+    lineChart(host, {
+      label: "p95 latency by arrival rate, first run and re-run",
+      height: narrow ? 300 : 400,
+      ml: narrow ? 50 : 62, mr: narrow ? 16 : 30,
+      x: { min: 0, max: 15000, ticks: narrow ? [0, 5000, 10000, 15000] : [0, 2500, 5000, 7500, 10000, 12500, 15000], fmt: v => fmt(v), fmtTip: v => fmt(v) + " RPS" + (v === 4200 ? " (1x)" : v === 8400 ? " (2x)" : v === 12600 ? " (3x)" : ""), title: "Arrival rate, RPS" },
+      y: { min: 0, max: 1500, ticks: [0, 300, 600, 900, 1200, 1500], fmt: v => fmt(v), fmtTip: v => fmt(v) + " ms", title: "p95, ms" },
+      refs: [{ y: 300, label: "Target 300 ms", anchor: "start" }],
+      grid: kneeX,
+      draw: true,
+      series: [
+        { name: "First run", cls: "s-fail", missing: "stopped", points: kneeX.map(x => [x, firstP95[x] ?? null]), marks: [8800],
+          labels: narrow ? [{ x: 8800, y: 1410, text: "Stopped", dx: -10, dy: 4, anchor: "end" }] : [{ x: 8800, y: 1410, text: "First run stopped, 8,800 RPS", dx: -12, dy: 4, anchor: "end" }, { x: 8800, y: 1410, text: "1,410 ms, errors 4.2%", dx: -12, dy: 22, anchor: "end", small: true }] },
+        { name: "Re-run", cls: "s-ink", points: kneeX.map(x => [x, rerunP95[x] ?? null]), marks: [4200, 8400, 12600],
+          labels: narrow ? [] : [{ x: 12600, y: 212, text: "Re-run at 3x: 212 ms", dx: -2, dy: 24, anchor: "end" }, { x: 14900, y: 388, text: "388 ms", dx: -4, dy: -12, anchor: "end", small: true }] }
+      ]
+    });
+    const tb = document.querySelector("#knee-table tbody");
+    if (!tb.children.length) {
+      kneeX.forEach(x => {
+        const tr = document.createElement("tr");
+        [fmt(x) + " RPS", firstP95[x] != null ? fmt(firstP95[x]) + " ms" : "stopped", fmt(rerunP95[x]) + " ms"].forEach(v => {
+          const td = document.createElement("td"); td.className = "n"; td.textContent = v; tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+    }
+  }
+
+  /* seeded noise so the render is stable */
+  let seed = 7;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  const heapX = [];
+  for (let h = 0; h <= 6.0001; h += 1 / 6) heapX.push(+h.toFixed(4));
+  const heapFirst = heapX.map(h => h <= 5.67 ? [h, Math.min(1024, 620 + 71 * h + (rnd() - 0.5) * 26)] : [h, null]);
+  heapFirst[heapFirst.findIndex(p => p[1] == null) - 1][1] = 1022;
+  const heapRe = heapX.map(h => [h, 626 + Math.min(1, h) * 14 + (rnd() - 0.5) * 22]);
+  heapRe[heapRe.length - 1][1] = 652;
+  const hrs = h => { const H = Math.floor(h + 1e-6), M = Math.round((h - H) * 60); return M === 60 ? `${H + 1} h 0 min` : `${H} h ${M} min`; };
+
+  function drawHeap() {
+    const host = document.getElementById("heapchart");
+    const narrow = host.clientWidth < 440;
+    const lastFirst = heapFirst.filter(p => p[1] != null).pop();
+    lineChart(host, {
+      label: "Heap per pod over the 6 hour soak",
+      height: narrow ? 240 : 270, ml: 58, mr: narrow ? 12 : 16,
+      x: { min: 0, max: 6, ticks: [0, 1, 2, 3, 4, 5, 6], fmt: v => v + " h", fmtTip: v => hrs(v) },
+      y: { min: 0, max: 1200, ticks: [0, 300, 600, 900, 1200], fmt: v => fmt(v), fmtTip: v => fmt(v) + " MB", title: "MB" },
+      refs: [{ y: 1024, label: "Limit 1,024 MB", anchor: "start" }], ymaxPad: 0,
+      grid: heapX,
+      series: [
+        { name: "First run", cls: "s-fail", missing: "pod killed", points: heapFirst, marks: [lastFirst[0]], labels: [{ x: lastFirst[0], y: 1024, text: "OOM kill, 5 h 40 min", dx: -12, dy: -26, anchor: "end" }] },
+        { name: "Re-run", cls: "s-ink", points: heapRe, marks: [6], labels: [{ x: 6, y: 652, text: "652 MB", dx: -6, dy: 22, anchor: "end" }] }
+      ]
+    });
+  }
+
+  const qX = []; for (let t = 0; t <= 15.0001; t += 0.25) qX.push(+t.toFixed(2));
+  const qFirst = qX.map(t => {
+    let d = 0;
+    if (t > 5.5 && t <= 10.5) d = (t - 5.5) * 60 * 512;
+    else if (t > 10.5) d = Math.max(0, 153600 - (t - 10.5) * 60 * 832);
+    return [t, Math.round(d)];
+  });
+  const qRe = qX.map(t => [t, t >= 5 && t <= 5.75 ? (t === 5.5 ? 1900 : t === 5.25 ? 900 : t === 5.75 ? 600 : 0) : (t > 5.75 && t <= 10.5 ? 300 : 0)]);
+  const mins = t => { const M = Math.floor(t), S = Math.round((t - M) * 60); return `${M} min ${S ? S + " s" : ""}`.trim(); };
+
+  function drawQueue() {
+    const host = document.getElementById("queuechart");
+    const narrow = host.clientWidth < 440;
+    lineChart(host, {
+      label: "Queue depth during the spike",
+      height: narrow ? 240 : 270, ml: 62, mr: narrow ? 12 : 16,
+      x: { min: 0, max: 15, ticks: [0, 5, 10, 15], fmt: v => v + " min", fmtTip: v => mins(v) + (v >= 5.5 && v <= 10.5 ? ", spike hold" : "") },
+      y: { min: 0, max: 160000, ticks: [0, 40000, 80000, 120000, 160000], fmt: v => v ? (v / 1000) + "k" : "0", fmtTip: v => fmt(v) + " msgs", title: "Messages" },
+      grid: qX,
+      series: [
+        { name: "First run", cls: "s-fail", points: qFirst, marks: [10.5], labels: [{ x: 10.5, y: 153600, text: "153,600 msgs", dx: -12, dy: 4, anchor: "end" }, { x: 10.5, y: 153600, text: "lag 2 min 34 s", dx: -18, dy: 22, anchor: "end", small: true }] },
+        { name: "Re-run", cls: "s-ink", points: qRe, labels: narrow ? [] : [{ x: 0, y: 0, text: "Re-run peak: 1,900 msgs", dx: 4, dy: -10, small: true }] }
+      ]
+    });
+  }
+
+  /* CI history: columns over pass/fail marks (Databricks job runs) */
+  const builds = [];
+  { const vals = [98, 101, 95, 104, 99, 97, 102, 96, 100, 103, 94, 99, 97, 412, 101, 98, 96, 100, 105, 99, 97, 102, 98, 96];
+    vals.forEach((v, i) => builds.push({ n: 1830 + i, p95: v })); }
+  function drawCI() {
+    const host = document.getElementById("cichart");
+    host.innerHTML = "";
+    const W = Math.max(280, host.clientWidth), narrow = W < 520;
+    const H = narrow ? 280 : 300;
+    const m = { t: 34, r: 10, b: 50, l: 48 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const Y = v => m.t + ih - v / 450 * ih;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img", "aria-label": "p95 per build with pass and fail marks" }, host);
+    const ax = el("g", { class: "ax" }, svg);
+    [0, 150, 300, 450].forEach(v => { el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), class: v ? "" : "base" }, ax); txt(ax, m.l - 8, Y(v) + 4, v, "", "end"); });
+    txt(ax, m.l - 8, m.t - 14, "ms", "", "end");
+    const g = el("g", { class: "ref" }, svg);
+    el("line", { x1: m.l, x2: m.l + iw, y1: Y(150), y2: Y(150) }, g);
+    txt(g, m.l + 4, Y(150) - 6, "Gate: p95 < 150 ms", "", "start");
+    const slot = iw / builds.length, bw = Math.min(16, slot - 2);
+    const tip = document.createElement("div"); tip.className = "tip"; tip.setAttribute("aria-hidden", "true"); host.appendChild(tip);
+    const live = document.createElement("p"); live.className = "vh"; live.setAttribute("aria-live", "polite"); host.appendChild(live);
+    builds.forEach((b, i) => {
+      const cx = m.l + slot * i + slot / 2;
+      const fail = b.p95 > 150;
+      const y = Y(b.p95), h = Y(0) - y, r = Math.min(4, bw / 2);
+      el("path", { d: `M${cx - bw / 2} ${Y(0)}V${y + r}Q${cx - bw / 2} ${y} ${cx - bw / 2 + r} ${y}H${cx + bw / 2 - r}Q${cx + bw / 2} ${y} ${cx + bw / 2} ${y + r}V${Y(0)}Z`, fill: fail ? "var(--fail)" : "var(--ink-2)" }, svg);
+      /* mark row: punched hole = pass, cross = fail */
+      const my = Y(0) + 16;
+      if (fail) el("path", { d: `M${cx - 4} ${my - 4}L${cx + 4} ${my + 4}M${cx + 4} ${my - 4}L${cx - 4} ${my + 4}`, stroke: "var(--fail)", "stroke-width": 2.5, fill: "none" }, svg);
+      else { el("circle", { cx, cy: my, r: Math.min(4.5, bw / 2 + 0.5), fill: "none", stroke: "var(--ink-2)", "stroke-width": 1.5 }, svg); el("circle", { cx, cy: my, r: 1.8, fill: "var(--ink)" }, svg); }
+      if (fail) { const right = cx < W / 2; txt(svg, cx + (right ? -bw / 2 : bw / 2), y - 10, `#${b.n} failed, ${b.p95} ms`, "lbl f", right ? "start" : "end"); }
+      if (i === 0 || i === builds.length - 1 || (!narrow && i % 4 === 0)) txt(svg, cx, Y(0) + 40, "#" + b.n, "lbl s", "middle");
+      const hit = el("rect", { x: cx - slot / 2, y: m.t, width: slot, height: ih + 30, fill: "transparent", tabindex: 0, role: "img", "aria-label": `Build ${b.n}: p95 ${b.p95} ms, ${fail ? "failed the gate" : "passed"}` }, svg);
+      const on = () => {
+        tip.textContent = "";
+        const hh = document.createElement("div"); hh.className = "h"; hh.textContent = "Build #" + b.n; tip.appendChild(hh);
+        const rr = document.createElement("div"); rr.className = "r";
+        const s = document.createElement("span"); s.textContent = fail ? "Failed, merge blocked" : "Passed";
+        const v = document.createElement("b"); v.textContent = b.p95 + " ms";
+        rr.appendChild(s); rr.appendChild(v); tip.appendChild(rr);
+        tip.classList.add("on");
+        const tw = tip.offsetWidth; let left = cx + 12; if (left + tw > W) left = cx - tw - 12;
+        tip.style.left = left + "px"; tip.style.top = Math.max(0, y - 50) + "px";
+        live.textContent = `Build ${b.n}, p95 ${b.p95} ms, ${fail ? "failed" : "passed"}`;
+      };
+      hit.addEventListener("pointerenter", on); hit.addEventListener("focus", on);
+      hit.addEventListener("pointerleave", () => tip.classList.remove("on")); hit.addEventListener("blur", () => tip.classList.remove("on"));
+    });
+  }
+
+  /* anatomy rows */
+  const anatomy = {
+    a: [["Waiting for a DB connection", 1310, true], ["Query", 290], ["Application code", 160], ["Serialization and network", 80]],
+    b: [["Waiting for a DB connection", 4, true], ["Query", 142], ["Application code", 98], ["Serialization and network", 42]]
+  };
+  function drawAnat(id, rows, total) {
+    const ul = document.getElementById(id);
+    rows.forEach(([name, ms, hot]) => {
+      const li = document.createElement("li");
+      li.tabIndex = 0;
+      const pct = Math.round(ms / total * 100);
+      li.setAttribute("aria-label", `${name}: ${fmt(ms)} ms, ${pct}% of ${fmt(total)} ms`);
+      const row = document.createElement("div"); row.className = "row";
+      const a = document.createElement("span"); a.textContent = name;
+      const p = document.createElement("span"); p.className = "pct"; p.textContent = pct + "%"; a.appendChild(p);
+      const b = document.createElement("span"); b.className = "ms"; b.textContent = fmt(ms) + " ms";
+      row.appendChild(a); row.appendChild(b);
+      const tr = document.createElement("div"); tr.className = "track";
+      const f = document.createElement("div"); f.className = "fillb" + (hot && ms / total > 0.3 ? " hot" : ""); f.style.width = Math.max(1, ms / total * 100) + "%";
+      tr.appendChild(f);
+      li.appendChild(row); li.appendChild(tr); ul.appendChild(li);
+    });
+  }
+  drawAnat("anat-a", anatomy.a, 1840);
+  drawAnat("anat-b", anatomy.b, 286);
+
+  /* ---------- sizer (signature interaction) ---------- */
+  const mixShares = [["GET", "/cart", 0.38], ["POST", "/cart/items", 0.22], ["GET", "/products/{id}", 0.16], ["POST", "/checkout", 0.12], ["GET", "/orders/{id}", 0.12]];
+  const peakIn = document.getElementById("peak"), peakBox = document.getElementById("peakbox"), peakErr = document.getElementById("peak-err");
+  let state = { peak: 4200, mult: 3 };
+
+  function profile(host, pts, maxY, xmax, xt, xfmt, refY) {
+    host.innerHTML = "";
+    const W = Math.max(240, host.clientWidth), H = 170;
+    const m = { t: 14, r: 10, b: 28, l: 52 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const X = v => m.l + v / xmax * iw, Y = v => m.t + ih - v / maxY * ih;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, "aria-hidden": "true" }, host);
+    const ax = el("g", { class: "ax" }, svg);
+    const yt = [0, refY[0], refY[1]];
+    yt.forEach((v, i) => { el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), class: i ? "" : "base" }, ax); txt(ax, m.l - 6, Y(v) + 4, fmt(v), "", "end"); });
+    xt.forEach(v => txt(ax, X(v), H - 8, xfmt(v), "", "middle"));
+    const d = pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ");
+    el("path", { d: d + ` L${X(pts[pts.length - 1][0])} ${Y(0)} L${X(pts[0][0])} ${Y(0)} Z`, class: "a-prof" }, svg);
+    el("path", { d, class: "s-prof" }, svg);
+  }
+
+  function render() {
+    const { peak, mult } = state;
+    const proof = Math.round(peak * mult);
+    const mid = Math.round(peak * (1 + mult) / 2);
+    const base = Math.round(peak / 3);
+    const wll = document.getElementById("o-wll"), pr = document.getElementById("o-proof");
+    wll.textContent = "WLL " + fmt(peak) + " RPS";
+    pr.textContent = "PROOF " + fmt(proof) + " RPS";
+    const conn = Math.ceil(proof * 0.010);
+    document.getElementById("o-little").innerHTML = "";
+    const L = document.getElementById("o-little");
+    L.append("At ");
+    const b1 = document.createElement("b"); b1.textContent = fmt(proof) + " RPS"; L.append(b1);
+    L.append(", every 10 ms a request holds a database connection keeps ");
+    const b2 = document.createElement("b"); b2.textContent = fmt(conn) + " connections"; L.append(b2);
+    L.append(" busy on average (arrival rate × hold time). That is the first sum we check against your pool.");
+
+    const maxY = proof * 1.12;
+    const mTxt = (mult % 1 ? mult.toFixed(1) : mult) + "x";
+    const midTxt = ((1 + mult) / 2 % 1 ? ((1 + mult) / 2).toFixed(2).replace(/0$/, "") : (1 + mult) / 2) + "x";
+    profile(document.getElementById("pf-const"), [[0, 0], [1, peak], [5, peak], [5.5, mid], [10, mid], [10.5, proof], [30.5, proof], [31.5, 0]], maxY, 32, [0, 10, 20, 30], v => v + " min", [peak, proof]);
+    profile(document.getElementById("pf-spike"), [[0, base], [5, base], [5.5, proof], [10.5, proof], [11, base], [16, base]], maxY, 16, [0, 5, 10, 15], v => v + " min", [peak, proof]);
+    profile(document.getElementById("pf-soak"), [[0, 0], [0.1, peak], [6, peak], [6.05, 0]], maxY, 6.1, [0, 2, 4, 6], v => v + " h", [peak, proof]);
+    document.getElementById("pf-const-t").textContent = `1x, ${midTxt}, then ${mTxt} (${fmt(proof)} RPS) held for 20 min: steady-state latency at each step and the knee between them.`;
+    document.getElementById("pf-spike-t").textContent = `${fmt(base)} RPS, then ${fmt(proof)} RPS in 30 s, held 5 min: autoscaling, pools and queues under a sudden jump.`;
+    /* area under each profile: ramps count at their average rate */
+    const constReq = 30 * peak + 240 * peak + 15 * (peak + mid) + 270 * mid + 15 * (mid + proof) + 1200 * proof + 30 * proof;
+    const spikeReq = 600 * base + 300 * proof + 30 * (base + proof);
+    document.getElementById("pf-const-n").textContent = "About " + (constReq / 1e6).toFixed(1) + " million requests";
+    document.getElementById("pf-spike-n").textContent = "About " + (spikeReq / 1e6).toFixed(1) + " million requests";
+    document.getElementById("pf-soak-n").textContent = (peak * 21600 / 1e6).toFixed(1) + " million requests";
+
+    const ul = document.getElementById("mixbars");
+    ul.textContent = "";
+    mixShares.forEach(([verb, path, share]) => {
+      const li = document.createElement("li");
+      const c = document.createElement("code"); c.textContent = verb.padEnd(5, " ") + path;
+      const tr = document.createElement("div"); tr.className = "bartrack";
+      const bar = document.createElement("div"); bar.className = "bar"; bar.style.width = (share / 0.38 * 78) + "%";
+      const v = document.createElement("span"); v.className = "v"; v.textContent = fmt(proof * share) + " RPS · " + Math.round(share * 100) + "%";
+      tr.appendChild(bar); tr.appendChild(v);
+      li.appendChild(c); li.appendChild(tr); ul.appendChild(li);
+    });
+  }
+
+  function readPeak() {
+    const raw = peakIn.value.replace(/[,\s_]/g, "");
+    const v = Number(raw);
+    if (!raw || !Number.isFinite(v) || v < 50 || v > 500000) {
+      peakBox.classList.add("err"); peakIn.setAttribute("aria-invalid", "true");
+      peakErr.textContent = "Enter a peak between 50 and 500,000 RPS, digits only.";
+      return null;
+    }
+    peakBox.classList.remove("err"); peakIn.removeAttribute("aria-invalid"); peakErr.textContent = "";
+    return Math.round(v);
+  }
+  let t;
+  peakIn.addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(() => { const v = readPeak(); if (v != null && v !== state.peak) { state.peak = v; render(); strike(document.getElementById("o-proof")); } }, 250);
+  });
+  peakIn.addEventListener("blur", () => { const v = readPeak(); if (v != null) peakIn.value = fmt(v); });
+  document.querySelectorAll('input[name="mult"]').forEach(r => r.addEventListener("change", () => { state.mult = Number(r.value); render(); strike(document.getElementById("o-proof")); }));
+
+  /* ---------- request form ---------- */
+  const form = document.getElementById("req"), done = document.getElementById("done");
+  const setErr = (input, id, msg) => {
+    const e = document.getElementById(id);
+    if (msg) { input.setAttribute("aria-invalid", "true"); e.textContent = msg; }
+    else { input.removeAttribute("aria-invalid"); e.textContent = ""; }
+    return !msg;
+  };
+  form.addEventListener("submit", ev => {
+    ev.preventDefault();
+    const url = form.url, pk = form.peak, mail = form.email, dt = form.date;
+    let ok = true, first = null;
+    const u = url.value.trim();
+    let uMsg = "";
+    if (!u) uMsg = "Add the staging URL we should load, for example https://staging.example.com.";
+    else { try { const p = new URL(u); if (!/^https?:$/.test(p.protocol)) uMsg = "Use an http or https URL."; } catch { uMsg = "That URL is not complete. Include https:// and the host name."; } }
+    if (!setErr(url, "e-url", uMsg)) { ok = false; first = first || url; }
+    const pv = Number(pk.value.replace(/[,\s_]/g, ""));
+    if (!setErr(pk, "e-peak", !pk.value.trim() ? "Add your last peak in requests per second. A rough figure is fine." : (!Number.isFinite(pv) || pv < 1) ? "Use digits only, for example 4200." : "")) { ok = false; first = first || pk; }
+    let dMsg = "";
+    if (dt.value) { const d = new Date(dt.value + "T12:00:00"); const today = new Date(); today.setHours(0, 0, 0, 0); if (d < today) dMsg = "That date has passed. Pick the date of the upcoming event."; }
+    if (!setErr(dt, "e-date", dMsg)) { ok = false; first = first || dt; }
+    const mv = mail.value.trim();
+    if (!setErr(mail, "e-mail", !mv ? "Add a work email so an engineer can reply with the plan." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mv) ? "That email is missing part of the address, for example you@company.com." : "")) { ok = false; first = first || mail; }
+    if (!ok) { first.focus(); return; }
+    const btn = document.getElementById("f-go");
+    btn.disabled = true; btn.classList.add("loading"); btn.firstChild.textContent = "Logging request ";
+    setTimeout(() => {
+      form.style.display = "none";
+      done.classList.add("on");
+      document.getElementById("done-msg").textContent = `Test request for ${new URL(u).host} at ${fmt(pv)} RPS is on the plate. In the real service an engineer would reply with a test plan. This is a portfolio demo, so nothing was sent anywhere.`;
+      done.focus();
+      strike(document.getElementById("done-id"));
+      btn.disabled = false; btn.classList.remove("loading"); btn.firstChild.textContent = "Start a test ";
+    }, 700);
+  });
+  document.getElementById("again").addEventListener("click", () => { done.classList.remove("on"); form.style.display = ""; form.reset(); form.url.focus(); });
+
+  /* ---------- running head: pager + CTA once the cover's own CTA is gone ---------- */
+  const head = document.querySelector(".head"), headCta = document.getElementById("head-cta"), now = document.getElementById("pager-now");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => {
+      const gone = !e.isIntersecting && e.boundingClientRect.top < 0;
+      head.classList.toggle("stuck", gone);
+      headCta.tabIndex = gone ? 0 : -1;
+      if (gone) headCta.removeAttribute("aria-hidden"); else headCta.setAttribute("aria-hidden", "true");
+    }).observe(document.getElementById("cover-cta"));
+    const pages = [["top", "Cover, page 1 of 7"], ["findings", "Findings, page 2 of 7"], ["scenarios", "Scenarios, page 3 of 7"], ["percentiles", "Percentiles, page 4 of 7"], ["bottlenecks", "Bottlenecks, page 5 of 7"], ["ci-gate", "CI gate, page 6 of 7"], ["method", "Method, page 7 of 7"], ["start", "Start a test"]];
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { const p = pages.find(x => x[0] === e.target.id); if (p) now.textContent = p[1]; } });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    pages.forEach(([id]) => { const n = document.getElementById(id); if (n) io.observe(n); });
+  }
+
+  /* ---------- boot ---------- */
+  const drawAll = () => { render(); drawKnee(); drawHeap(); drawQueue(); drawCI(); };
+  drawAll();
+  let rt, lastW = innerWidth;
+  addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (innerWidth !== lastW) { lastW = innerWidth; drawAll(); } }, 150); });
+  const go = () => strike(document.querySelector("[data-strike]"));
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => { drawAll(); setTimeout(go, 250); });
+})();
+</script>
+</body>
+</html>
