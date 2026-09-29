@@ -1016,7 +1016,7 @@ legend.q { font-weight: 650; font-size: var(--fs-button); margin-bottom: var(--s
       var g = groups[i];
       var a = b.roast + ready, z = Math.min(SPAN, b.roast + FADE);
       if (!b.skipped && a < SPAN) el("rect", { class: "good", x: X(a), y: TRACK + (i % 2) * 10, width: Math.max(2, X(z) - X(a)), height: 6 }, g);
-      if (!b.skipped) el("circle", { class: "door", cx: X(b.roast + 2), cy: TOP + PH, r: 5 }, g);
+      if (!b.skipped) el("circle", { class: "door", cx: X(b.roast + 2), cy: TOP + s * (1 - gas(2)) * PH, r: 5 }, g);
     });
     /* week labels */
     for (t = 0; t <= SPAN; t += STEP) {
